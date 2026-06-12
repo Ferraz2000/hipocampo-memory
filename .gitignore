@@ -1,0 +1,21 @@
+# hipocampo
+.brain-cache/
+*.brain-cache/
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# local, machine-only config override (never committed)
+brain.config.local.toml

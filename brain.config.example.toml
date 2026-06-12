@@ -1,0 +1,82 @@
+# brain.config.toml — hipocampo per-project configuration
+#
+# Copy to `brain.config.toml` at your repo root and edit. Every hipocampo script
+# reads from here; nothing project-specific is hardcoded. Anything you omit
+# falls back to the defaults shown below (these defaults live in
+# hipocampo/config.py — keep the two in sync).
+#
+# Read with: hipocampo.config.load_config()  (walks up from cwd to find this file)
+
+# Where the vault lives, relative to the repo root. Neutral default; set to
+# "docs/obsidian" if you open it as an Obsidian vault, or anything you like.
+vault_root = "docs/brain"
+
+# Language of scaffolded vault content and capture prompts ("en", "pt-BR", ...).
+# Drives which locale the generator skills emit; does not affect script logic.
+language = "en"
+
+# Base branch for the git-derived session briefing (SessionStart hook) and for
+# doc-sync diff ranges.
+base_branch = "main"
+
+# Subdirectories. inbox/insights/raw_sources/generated/knowledge are relative to
+# vault_root; cache is relative to the repo root (it's disposable, gitignored).
+[dirs]
+knowledge   = "knowledge"
+inbox       = "knowledge/_inbox"
+insights    = "insights"
+raw_sources = "raw/sources"
+generated   = "_generated"
+cache       = ".brain-cache"
+
+# Closed vocabulary for knowledge/insight `area:` frontmatter. Tune per project.
+areas = ["meta", "architecture", "product", "testing"]
+
+# Closed vocabulary for insight `status:` frontmatter (frontmatter-as-truth).
+statuses = [
+  "triage", "active", "deferred",
+  "implemented", "closed", "rejected", "superseded", "promoted",
+]
+
+# Roadmap work states (the "is this actively queued" set) and the statuses that
+# mean an item is done/dead (used to detect roadmap/insight drift).
+active_states     = ["ready", "in-progress"]
+inactive_statuses = ["rejected", "closed", "discarded", "superseded", "implemented"]
+
+# Optional: map common misspellings/aliases to a canonical area (drift fixer).
+# Example: { tech = "technical", arch = "architecture" }
+[area_aliases]
+
+# Inbox decay: auto-sweeps of this `type:` older than decay_days, still in triage
+# and not pinned, are expired. Markdown stays the source of truth; only the
+# kit's own ephemeral sweeps are ever removed.
+[inbox]
+decay_days = 30
+sweep_type = "capture-sweep"
+
+# Phrases that should trigger a proactive "capture this?" offer in chat. The
+# write-gate still applies — the agent offers, the human approves.
+capture_triggers = [
+  "decided", "decision is", "from now on", "always", "rule of thumb",
+  "lesson learned", "trade-off", "anti-pattern", "canonical",
+]
+
+# Validators run by preflight, in order. Each entry is a module under
+# hipocampo/validators/ (without the .py). Empty until Phase 3 lands them.
+validators = []
+
+# Doc-sync rules (Phase 3): when a commit stages a file matching `paths`, it must
+# also stage at least one doc matching `docs` in the same commit, or the commit
+# is blocked. This is the "behavior change must update its doc" gate.
+#
+# Replaces the origin project's hardcoded AREA_RULES. Add one table per rule:
+#
+# [[doc_sync]]
+# name  = "public-contract"
+# paths = ["src/contracts/**"]
+# docs  = ["docs/architecture/contracts.md"]
+#
+# [[doc_sync]]
+# name  = "persistence"
+# paths = ["src/**/migrations/**", "src/**/repositories/**"]
+# docs  = ["docs/architecture/persistence.md"]

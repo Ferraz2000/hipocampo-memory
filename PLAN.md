@@ -1,0 +1,72 @@
+# hipocampo — extraction plan & port status
+
+This repo extracts and generalizes a private, battle-tested agent-memory system
+into a reusable kit. Source-of-record for the design decisions is the captured
+research digest and plan (private vault); this file is the public, living
+roadmap.
+
+## Principles (carried from the research)
+
+- **Markdown is the source of truth**; any index/cache is derived and disposable.
+- **Human write-gate**: the agent proposes captures, the human approves, the
+  agent files and reports. No autonomous writes to durable memory.
+- **Index-first reads** (Karpathy LLM-wiki): cheap `knowledge/index.md` →
+  load only relevant pages → never bulk-read the vault (context-rot defense).
+- **Frontmatter-as-truth**: dashboards/readouts are projections of frontmatter,
+  never hand-curated.
+- **Lean, operational router**: short `AGENTS.md` with concrete commands/paths
+  (vague long instruction files measurably tax reasoning).
+- **Zero runtime deps**: stdlib-only Python so it runs in any container/CI.
+- **Config-driven**: all project-specifics live in `brain.config.toml`.
+
+## Distribution (decided)
+
+Hybrid, one git repo as source:
+
+1. **Cross-agent skills** (Agent Skills open format) → `npx skills add` installs
+   into Claude Code / Codex / Gemini.
+2. **Claude Code plugin** + git marketplace → the only vehicle that carries
+   hooks + `bin/` scripts + default settings.
+3. **Scaffold via skill** (not cookiecutter) so bootstrap is cross-agent.
+
+## Phases
+
+| Phase | Deliverable | Status |
+|------|-------------|--------|
+| 1 | Foundation: repo skeleton, config loader, first working slice (inbox_decay) + tests | 🟡 in progress |
+| 2 | Port core: `vault_tools` (frontmatter/Insight/DQL/views), `search` (BM25/RRF), `index` (FTS5) — config-driven | ⬜ pending |
+| 3 | Port validators + `preflight` (doc-links, feature-doc-sync via config `doc_sync`, vault-sync); git hooks + CI template | ⬜ pending |
+| 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`registra`, `discovery`, `spec`, `busca`, …) + plugin/marketplace | ⬜ pending |
+| 5 | Vault templates + limiter docs (`capture.md`, `context-budget.md`, `knowledge/index.md`) — English, language-parameterized | ⬜ pending |
+| 6 | Improvements from research (below) as incremental PRs | ⬜ pending |
+| 7 | Dogfood on a fresh non-private project; then migrate the origin project to consume the kit | ⬜ pending |
+
+## Script port status (origin → `hipocampo/`)
+
+| Origin script | Generic % | Target | Status |
+|---------------|-----------|--------|--------|
+| `vault_tools.py` (1078L) | ~70% | `hipocampo/vault_tools.py` | ⬜ |
+| `search-vault.py` (216L) | ~90% | `hipocampo/search.py` | ⬜ |
+| `vault_index.py` (292L) | ~90% | `hipocampo/index.py` | ⬜ |
+| `preflight.py` (47L) | ~80% | `hipocampo/preflight.py` | ⬜ |
+| `inbox_decay.py` (100L) | ~85% | `hipocampo/inbox_decay.py` | ✅ |
+| `parse_frontmatter` (from vault_tools) | 100% | `hipocampo/frontmatter.py` | ✅ |
+| `validate-doc-links.py` | ~90% | `hipocampo/validators/doc_links.py` | ⬜ |
+| `validate-feature-doc-sync.py` | ~50% (AREA_RULES → config) | `hipocampo/validators/feature_doc_sync.py` | ⬜ |
+| `validate-vault-sync.py` | ~60% | `hipocampo/validators/vault_sync.py` | ⬜ |
+| `generate-vault-views.py` | ~70% | `hipocampo/views.py` | ⬜ |
+
+## Improvements queued (Phase 6)
+
+1. Policy for native Claude Code auto-memory (redirect into repo inbox vs disable).
+2. Conditional rules via `.claude/rules/` `paths:` instead of bloating `AGENTS.md`.
+3. Dependency graph on the work layer (`depends_on:`/`blocks:`) — beads-lite.
+4. Append-only `log.md` in the vault (Karpathy).
+5. Lint/gardener pass (contradictions, stale, orphans; ingest updates old pages).
+6. Semantic compaction of closed insights into an archive index (beads).
+7. Optional local semantic search (FastEmbed + disposable SQLite) alongside BM25.
+8. `/challenge` — confront a decision with the vault's past reversals/failures.
+9. `/discover-standards` — mine the code, propose conventions as candidate insights.
+10. Temporal validity in `knowledge/` (`valid_until`/`superseded_by`) + staleness validator.
+11. Context-budget audit via `InstructionsLoaded` hook + router size/vagueness validator.
+12. Recitation in long flows; strict progressive disclosure (bootstrap <2k tokens).
