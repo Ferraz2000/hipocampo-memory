@@ -8,6 +8,10 @@ description: Scaffold a hipocampo memory vault into the current project — crea
 Create a durable, git-versioned, human-gated memory vault in this repo. Idempotent:
 never overwrite an existing `.md`.
 
+**Prerequisites:** ability to run `git` and Python (`python3`, or `python` on
+Windows). In a restricted sandbox that blocks writes/process execution, these
+skills cannot scaffold — say so instead of half-running.
+
 ## Steps
 
 1. **Detect existing setup.** If `brain.config.toml` already exists, read it and
@@ -19,10 +23,13 @@ never overwrite an existing `.md`.
    `${CLAUDE_PLUGIN_ROOT}/brain.config.example.toml`, filling in the answers.
    Don't overwrite an existing config — diff and ask first.
 3. **Copy the skeleton.** Copy `${CLAUDE_PLUGIN_ROOT}/templates/vault/<language>/`
-   into `<vault_root>/`, skipping any file that already exists. Replace the
+   into `<vault_root>/`, skipping any file that already exists. Preserve the empty
+   dirs (`insights/`, `raw/sources/`, `knowledge/_inbox/`, `specs/`, `adrs/`) —
+   they ship with `.gitkeep`; a recursive copy keeps them. Then replace the
    `{{DATE}}` placeholder with today's date (ISO `YYYY-MM-DD`) in every copied file.
-4. **Verify.** Run `python3 -m hipocampo.validators.vault_sync` — a fresh vault must
-   pass (index present, no FAILs).
+4. **Verify.** Grep the copied vault for residual `{{DATE}}` (fail and re-render if
+   any remain), then run `python3 -m hipocampo.validators.vault_sync` (use `python`
+   if `python3` isn't on PATH) — a fresh vault must pass (index present, no FAILs).
 5. **Report** in a few lines: vault root, language, areas, files created. Point the
    user at `capture.md` (how chat becomes durable notes) and `context-budget.md`
    (index-first reads).

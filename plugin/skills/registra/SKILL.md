@@ -25,11 +25,16 @@ Capture what the user marked (or `$ARGUMENTS`):
    - **Proposal** → `<vault>/insights/<area>/<slug>.md` from `template-insight.md`.
    - **Persona/preference** (how to work with the user, not a project fact) →
      append to `.claude/rules/USER.md` (compact; perishable claims carry `[as of YYYY-MM]`).
-2. **Cite the source** in `sources:` (path to `raw/` or a URL); set `provenance`.
+2. **Cite the source** in `sources:` (path to `raw/` or a URL); set `provenance`
+   (`extracted` | `inferred` | `ambiguous`).
 3. **If you wrote to `knowledge/<area>/`**, add a one-line entry under that area in
    `<vault>/knowledge/index.md` (the `vault_sync` validator FAILs a page without an
-   index entry).
-4. **Append to `<vault>/log.md`** a one-line dated entry.
+   index entry). The shipped index has example `## <area>` headers **inside an HTML
+   comment** — those don't count. Create a live `## <area>` section (uncomment or
+   add one) and put the entry there. Format: `- [<slug>](<area>/<slug>.md) — one-line
+   hook. Sources: <...>`.
+4. **Append to `<vault>/log.md`** a one-line dated entry, format:
+   `## [YYYY-MM-DD] capture | <title>`.
 5. **Report in one line** what you wrote and where.
 
 Valid `area` values come from `brain.config.toml` (`areas`). A new area → confirm

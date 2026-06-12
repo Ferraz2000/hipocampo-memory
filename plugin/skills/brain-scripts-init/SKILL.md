@@ -11,9 +11,15 @@ installed (hooks/CI need the package importable at the repo root).
 ## Steps
 
 1. **Vendor the package.** Copy `${CLAUDE_PLUGIN_ROOT}/hipocampo/` to the repo root
-   as `hipocampo/` (exclude `tests/`). Each vendored file keeps a header line:
-   `# hipocampo vX.Y.Z — managed; edit via brain.config.toml`. Record the version
-   and source commit in `hipocampo/.hipocampo-manifest.json` for `brain-update`.
+   as `hipocampo/` (exclude `tests/`). Get the version from
+   `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` (`version` field) and the
+   source commit from `git -C ${CLAUDE_PLUGIN_ROOT} rev-parse --short HEAD`. Write
+   `hipocampo/.hipocampo-manifest.json`:
+   ```json
+   {"version": "<version>", "source_commit": "<short-sha>", "vendored_at": "<YYYY-MM-DD>"}
+   ```
+   (the manifest is what `brain-update` reads to diff against the kit). Adding a
+   per-file managed header is optional and not required for `brain-update`.
 2. **Install the git hooks.** Copy `${CLAUDE_PLUGIN_ROOT}/templates/githooks/`
    (`pre-commit`, `pre-push`) into `.githooks/`, make them executable, and set
    `git config core.hooksPath .githooks`.
