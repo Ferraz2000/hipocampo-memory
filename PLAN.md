@@ -47,7 +47,7 @@ Hybrid, one git repo as source:
 | 2 | Retrieval layer: `search` (pure BM25) + `index` (FTS5 + RRF graph fusion), config-driven, with tests | ✅ done |
 | 3 | Governance: `vault.py` page model + validators (`doc_links`, `feature_doc_sync` via config `doc_sync`, `vault_sync`) + config-driven `preflight` + git-hook/CI templates | ✅ done (DQL→markdown views deferred to optional 5b) |
 | 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`registra`, `discovery`, `spec`, `busca`, …) + plugin/marketplace | ⬜ pending |
-| 5 | Vault templates + limiter docs (`capture.md`, `context-budget.md`, `knowledge/index.md`) — English, language-parameterized | ⬜ pending |
+| 5 | Vault templates + limiter docs (`capture.md`, `context-budget.md`, `README.md`, `knowledge/index.md`, `log.md`, note templates) — **bilingual EN + pt-BR** | ✅ done |
 | 6 | Improvements from research (below) as incremental PRs | ⬜ pending |
 | 7 | Dogfood on a fresh non-private project; then migrate the origin project to consume the kit | ⬜ pending |
 

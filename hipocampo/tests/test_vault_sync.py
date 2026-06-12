@@ -48,6 +48,13 @@ class VaultSyncTest(unittest.TestCase):
             issues = vault_sync.check_knowledge_index(cfg)
             self.assertTrue(any("ghost" in m for _, m in issues))
 
+    def test_commented_out_example_links_are_ignored(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, v = self._vault(tmp)
+            (v / "knowledge/index.md").write_text(
+                "# index\n<!--\n- [ex](meta/ghost.md) — example\n-->\n", encoding="utf-8")
+            self.assertEqual(vault_sync.check_knowledge_index(cfg), [])
+
     # -- status / area vocabulary ----------------------------------------
     def test_offvocab_status_and_area_fail(self):
         with tempfile.TemporaryDirectory() as tmp:

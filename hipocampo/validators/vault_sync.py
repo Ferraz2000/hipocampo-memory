@@ -36,6 +36,8 @@ def check_knowledge_index(cfg):
         return issues
 
     index_text = index_path.read_text(encoding="utf-8", errors="replace")
+    # Strip HTML comments so commented-out examples don't count as real entries/links.
+    index_text = re.sub(r"<!--.*?-->", "", index_text, flags=re.S)
 
     pages_on_disk = set()
     for area in sorted(os.listdir(kroot)):

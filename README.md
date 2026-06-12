@@ -85,7 +85,7 @@ plugin/                    # Claude Code plugin (skills, hooks) — WIP
 templates/                 # scaffolded into target repos
   githooks/                # pre-commit (doc-sync gate) + pre-push (preflight)
   ci/                      # agent-docs workflow
-  vault/                   # the docs/brain skeleton — WIP
+  vault/{en,pt-BR}/        # the docs/brain skeleton (limiters + note templates)
 brain.config.example.toml  # documented config schema
 PLAN.md                    # extraction roadmap + port status
 ```
