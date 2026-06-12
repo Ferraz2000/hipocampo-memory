@@ -71,6 +71,12 @@ capture_triggers = [
 capture_agent_triggers = ["anti-pattern", "canonical", "consolidated pattern"]
 # Hosts treated as internal — URLs containing these are not swept as sources.
 capture_internal_hosts = ["localhost", "127.0.0.1"]
+# Phrases meaning the user already triggered capture this session (sweep skips them).
+capture_verbs = ["/registra", "registra isso", "save to the brain"]
+
+# Dirs doc_links never descends into (.git, __pycache__, and the cache dir are
+# always excluded on top of these).
+doc_links_exclude_dirs = ["coverage", "node_modules", "bin", "obj", ".venv", "dist", "build", "target", "vendor"]
 
 # Required docs (routing contract): these must exist, or doc_links fails.
 required_docs = []

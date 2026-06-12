@@ -13,20 +13,22 @@ import sys
 from .. import config as _config
 
 _LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
-_EXCLUDE_DIRS = {".git", ".brain-cache", "coverage", ".nuget", "node_modules", "bin", "obj", ".venv"}
+_ALWAYS_EXCLUDE = {".git", "__pycache__"}
 
 
 def missing_required_docs(repo_root, required):
     return [d for d in required if not os.path.exists(os.path.join(repo_root, d))]
 
 
-def broken_doc_links(repo_root):
+def broken_doc_links(repo_root, exclude_dirs=None):
     """Relative Markdown links that don't resolve. Skips code fences,
-    external/anchor links, and build/vendor dirs. Returns ``(file, target)``."""
+    external/anchor links, and the excluded (build/vendor/cache) dirs.
+    Returns ``(file, target)``."""
     repo_root = str(repo_root)
+    exclude = _ALWAYS_EXCLUDE | set(exclude_dirs or ())
     issues = []
     for dirpath, dirs, files in os.walk(repo_root):
-        dirs[:] = [d for d in dirs if d not in _EXCLUDE_DIRS]
+        dirs[:] = [d for d in dirs if d not in exclude]
         for fname in files:
             if not fname.endswith(".md"):
                 continue
@@ -55,9 +57,14 @@ def broken_doc_links(repo_root):
 
 
 def main(argv=None):
-    cfg = _config.load_config()
+    try:
+        cfg = _config.load_config()
+    except _config.ConfigError as e:
+        print(f"doc-links: {e}")
+        return 1
+    exclude = set(cfg.doc_links_exclude_dirs) | {cfg.cache_dir.name}
     missing = missing_required_docs(cfg.repo_root, cfg.required_docs)
-    broken = broken_doc_links(cfg.repo_root)
+    broken = broken_doc_links(cfg.repo_root, exclude)
 
     for d in missing:
         print(f"FAIL  required doc missing: {d}")

@@ -66,6 +66,13 @@ class LoadConfigTest(unittest.TestCase):
             # untouched default survives the partial [inbox] override
             self.assertEqual(cfg.inbox_sweep_type, "capture-sweep")
 
+    def test_invalid_toml_raises_configerror(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / config.CONFIG_FILENAME).write_text("this is = = not valid", encoding="utf-8")
+            with self.assertRaises(config.ConfigError):
+                load_config(start=root)
+
     def test_local_override_wins(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

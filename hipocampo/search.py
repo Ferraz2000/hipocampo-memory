@@ -173,6 +173,11 @@ def run_search(query, cfg=None, top=8, dirs=None, all_statuses=False,
         docs = collect(cfg, dirs or cfg.search_dirs)
         results = bm25(docs, query_terms)
 
+    # The knowledge index is a navigation hub; RRF over-ranks it (it links
+    # everything), so never return it as a search hit.
+    idx_rel = (cfg.knowledge_dir / "index.md").relative_to(cfg.repo_root).as_posix()
+    results = [r for r in results if r[0].replace(os.sep, "/") != idx_rel]
+
     hidden = 0
     if not all_statuses:
         hide = cfg.search_hidden_statuses

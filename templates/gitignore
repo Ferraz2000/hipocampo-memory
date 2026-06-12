@@ -1,0 +1,5 @@
+# hipocampo — derived & disposable, never commit
+.brain-cache/
+__pycache__/
+*.py[cod]
+brain.config.local.toml

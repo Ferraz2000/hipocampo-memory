@@ -30,7 +30,7 @@ def check_knowledge_index(cfg):
     kroot = cfg.knowledge_dir
     index_path = kroot / "index.md"
     if not kroot.is_dir():
-        return issues
+        return [("WARN", f"[Vault] knowledge dir not found ({kroot}) — was brain-init run for this config?")]
     if not index_path.is_file():
         issues.append(("FAIL", "[Index] knowledge/index.md missing — required entry point for index-first reads"))
         return issues
@@ -39,14 +39,15 @@ def check_knowledge_index(cfg):
     # Strip HTML comments so commented-out examples don't count as real entries/links.
     index_text = re.sub(r"<!--.*?-->", "", index_text, flags=re.S)
 
+    # Recurse: a page nested below knowledge/<area>/ must still be discoverable.
     pages_on_disk = set()
-    for area in sorted(os.listdir(kroot)):
-        adir = kroot / area
-        if not adir.is_dir() or area.startswith("_"):
+    for path in sorted(kroot.rglob("*.md")):
+        rel = path.relative_to(kroot)
+        if rel.as_posix() == "index.md":
             continue
-        for fname in sorted(os.listdir(adir)):
-            if fname.endswith(".md"):
-                pages_on_disk.add(f"{area}/{fname}")
+        if any(part.startswith("_") for part in rel.parts):
+            continue  # _inbox/ sweeps in triage
+        pages_on_disk.add(rel.as_posix())
 
     for rel in sorted(pages_on_disk):
         slug = rel[:-3]
@@ -135,7 +136,11 @@ def check_provenance(cfg):
 
 
 def main(argv=None):
-    cfg = _config.load_config()
+    try:
+        cfg = _config.load_config()
+    except _config.ConfigError as e:
+        print(f"vault-sync: {e}")
+        return 1
     results = (check_knowledge_index(cfg)
                + check_status_area(cfg)
                + check_provenance(cfg))

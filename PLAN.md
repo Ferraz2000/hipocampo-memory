@@ -51,6 +51,19 @@ Hybrid, one git repo as source:
 | 6 | Improvements from research (below) as incremental PRs | ⬜ pending |
 | 7 | Dogfood: Go repo (mechanical, 8/8) + Node repo (live agent-walkthrough of the corrected skills, all green) — found & fixed real prose/hook gaps (v0.2.1). Origin-project-as-consumer still pending (production, on owner confirmation) | 🟡 dogfood done; migration pending |
 
+## Validation
+
+- **Go repo (mechanical, me):** 8/8 — scaffold, doc-sync gate, search, capture,
+  hooks, router-lint. EXECUTED.
+- **Node repo (live agent-walkthrough of corrected skills):** all green. EXECUTED.
+- **Independent audit (separate model, v0.2.1):** executed every path; confirmed
+  zero-dep, config-driven, doc-sync gate, search fallback, hooks. Found 2 major +
+  6 minor issues → all addressed in **v0.2.3**: `.gitignore` scaffolding (cache no
+  longer committed), secret redaction in the capture sweep, doc_sync `docs` globs,
+  recursive index check + missing-vault warn, TOML error handling, configurable
+  doc_links excludes, hooks.json interpreter fallback, search no longer returns the
+  index hub, CI base-ref mapping.
+
 ## Script port status (origin → `hipocampo/`)
 
 | Origin script | Generic % | Target | Status |

@@ -34,6 +34,15 @@ class DocLinksTest(unittest.TestCase):
             (root / "a.md").write_text("```\n[x](ghost.md)\n```\n", encoding="utf-8")
             self.assertEqual(broken_doc_links(root), [])
 
+    def test_excluded_dir_is_skipped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "node_modules").mkdir()
+            (root / "node_modules" / "a.md").write_text("[x](ghost.md)", encoding="utf-8")
+            self.assertEqual(broken_doc_links(root, {"node_modules"}), [])
+            # without excluding it, the broken link is found
+            self.assertEqual([t for _, t in broken_doc_links(root)], ["ghost.md"])
+
     def test_missing_required_docs(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

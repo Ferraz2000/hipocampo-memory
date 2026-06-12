@@ -23,6 +23,13 @@ class PureHelpersTest(unittest.TestCase):
         self.assertTrue(cs.is_external("https://example.com/x", hosts))
         self.assertFalse(cs.is_external("http://localhost:5000/y", hosts))
 
+    def test_redact_scrubs_secret_shapes(self):
+        self.assertIn("[REDACTED]", cs.redact("the password is hunter2-S3cret!"))
+        self.assertIn("[REDACTED]", cs.redact("token=abcd1234 in config"))
+        self.assertIn("[REDACTED]", cs.redact("key AKIA1234567890ABCDEF here"))
+        self.assertIn("[REDACTED]", cs.redact("AWS_SECRET_ACCESS_KEY=AKIA1234567890ABCDEF"))
+        self.assertEqual(cs.redact("nothing secret here"), "nothing secret here")
+
     def test_filter_new_drops_captured_and_pending(self):
         urls = {"https://example.com/a", "https://example.com/b"}
         triggers = [("decided", "we decided to ship"), ("trade-off", "the trade-off is X")]

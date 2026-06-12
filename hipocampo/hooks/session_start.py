@@ -67,8 +67,8 @@ def main(argv=None):
         json.load(sys.stdin)  # consume payload (source-aware logic could branch here)
     except Exception:
         pass
-    cfg = _config.load_config(start=os.environ.get("CLAUDE_PROJECT_DIR"))
     try:
+        cfg = _config.load_config(start=os.environ.get("CLAUDE_PROJECT_DIR"))
         sys.stdout.write(build_briefing(cfg))
     except Exception:
         pass

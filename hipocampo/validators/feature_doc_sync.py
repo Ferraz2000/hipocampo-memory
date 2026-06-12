@@ -39,7 +39,8 @@ def failures(changed, cfg):
         touched = [f for f in changed if match_any(f, paths)]
         if not touched:
             continue
-        if any(d in changed for d in docs):
+        # docs may be exact paths or globs; a changed file matching any satisfies it.
+        if any(match_any(c, docs) for c in changed):
             continue
         out.append(
             f"Sensitive area changed without its doc update: {name}\n"
@@ -65,7 +66,11 @@ def _report(changed, cfg, label):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
-    cfg = _config.load_config()
+    try:
+        cfg = _config.load_config()
+    except _config.ConfigError as e:
+        print(f"feature-doc-sync: {e}")
+        return 1
 
     if not cfg.doc_sync:
         print("feature-doc-sync: no [[doc_sync]] rules configured; nothing to check.")

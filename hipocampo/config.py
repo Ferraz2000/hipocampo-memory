@@ -19,6 +19,10 @@ from pathlib import Path
 CONFIG_FILENAME = "brain.config.toml"
 LOCAL_OVERRIDE_FILENAME = "brain.config.local.toml"
 
+
+class ConfigError(Exception):
+    """Raised for an unreadable/invalid brain.config.toml (actionable message)."""
+
 # Canonical defaults. Mirror brain.config.example.toml — keep the two in sync.
 DEFAULTS = {
     "vault_root": "docs/brain",
@@ -61,6 +65,13 @@ DEFAULTS = {
     # router_lint is opt-in (not in the default validators): add "router_lint" to
     # validators to enforce a lean AGENTS.md. Lean routers measurably help agents.
     "router": {"file": "AGENTS.md", "max_lines": 120},
+    # Directories doc_links never descends into (build/vendor output). ".git",
+    # "__pycache__", and the cache dir are always excluded on top of these.
+    "doc_links_exclude_dirs": ["coverage", "node_modules", "bin", "obj", ".venv",
+                                "dist", "build", "target", "vendor"],
+    # Phrases that mean "the user already triggered capture this session" — the
+    # Stop-hook sweep skips when it sees one (agent-agnostic; tune per setup).
+    "capture_verbs": ["/registra", "registra isso", "save to the brain"],
     "doc_sync": [],
     # A changed file matching any of these globs (e.g. a Doc Impact Report)
     # satisfies every doc_sync rule for that commit.
@@ -211,6 +222,14 @@ class Config:
         return list(self._d["capture_internal_hosts"])
 
     @property
+    def capture_verbs(self) -> list:
+        return list(self._d["capture_verbs"])
+
+    @property
+    def doc_links_exclude_dirs(self) -> frozenset:
+        return frozenset(self._d["doc_links_exclude_dirs"])
+
+    @property
     def validators(self) -> list:
         return list(self._d["validators"])
 
@@ -252,13 +271,18 @@ def load_config(start=None) -> Config:
     config_path = _find_up(start_path, CONFIG_FILENAME)
     root = config_path.parent if config_path else _find_repo_root(start_path)
 
+    def _load_toml(path):
+        try:
+            with open(path, "rb") as fh:
+                return tomllib.load(fh)
+        except tomllib.TOMLDecodeError as e:
+            raise ConfigError(f"Invalid TOML in {path}: {e}") from None
+
     data = DEFAULTS
     if config_path:
-        with open(config_path, "rb") as fh:
-            data = deep_merge(data, tomllib.load(fh))
+        data = deep_merge(data, _load_toml(config_path))
         local_path = config_path.parent / LOCAL_OVERRIDE_FILENAME
         if local_path.is_file():
-            with open(local_path, "rb") as fh:
-                data = deep_merge(data, tomllib.load(fh))
+            data = deep_merge(data, _load_toml(local_path))
 
     return Config(data, root, config_path)

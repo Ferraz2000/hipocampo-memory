@@ -20,6 +20,10 @@ installed (hooks/CI need the package importable at the repo root).
    ```
    (the manifest is what `brain-update` reads to diff against the kit). Adding a
    per-file managed header is optional and not required for `brain-update`.
+   **Also create or append the repo-root `.gitignore`** from
+   `${CLAUDE_PLUGIN_ROOT}/templates/gitignore` so the derived cache
+   (`.brain-cache/`) and `__pycache__/`/`*.pyc` are never committed — the cache is
+   disposable and would otherwise churn on every search.
 2. **Install the git hooks.** Copy `${CLAUDE_PLUGIN_ROOT}/templates/githooks/`
    (`pre-commit`, `pre-push`) into `.githooks/`, make them executable, and set
    `git config core.hooksPath .githooks`.

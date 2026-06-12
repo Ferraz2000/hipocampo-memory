@@ -20,4 +20,8 @@ jobs:
         with:
           python-version: "3.11"
       - name: Preflight (all configured validators)
+        env:
+          # Map the push event's "before" SHA so feature_doc_sync can diff a push
+          # (GitHub Actions exposes it in the event payload, not the default env).
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
         run: python3 -m hipocampo.preflight

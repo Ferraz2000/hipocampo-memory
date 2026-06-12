@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -m hipocampo.hooks.session_start",
+            "command": "sh -c \"exec $(command -v python3 || command -v python) -m hipocampo.hooks.session_start\"",
             "timeout": 10
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -m hipocampo.hooks.capture_sweep",
+            "command": "sh -c \"exec $(command -v python3 || command -v python) -m hipocampo.hooks.capture_sweep\"",
             "timeout": 15
           }
         ]

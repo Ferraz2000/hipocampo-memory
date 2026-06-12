@@ -5,7 +5,7 @@ a set of vault-maintenance tools that read everything project-specific from
 ``brain.config.toml`` instead of hardcoding it.
 """
 
-from .config import Config, load_config
+from .config import Config, ConfigError, load_config
 
-__all__ = ["Config", "load_config"]
+__all__ = ["Config", "ConfigError", "load_config"]
 __version__ = "0.0.1"

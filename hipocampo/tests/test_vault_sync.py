@@ -40,6 +40,22 @@ class VaultSyncTest(unittest.TestCase):
                 "- [note](meta/note.md) — hook\n", encoding="utf-8")
             self.assertEqual(vault_sync.check_knowledge_index(cfg), [])
 
+    def test_nested_page_still_requires_index_entry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, v = self._vault(tmp)
+            (v / "knowledge/index.md").write_text("# index\n", encoding="utf-8")
+            deep = v / "knowledge/architecture/deep"
+            deep.mkdir(parents=True)
+            (deep / "hidden.md").write_text("# hidden\n", encoding="utf-8")
+            issues = vault_sync.check_knowledge_index(cfg)
+            self.assertTrue(any("hidden" in m for _, m in issues))
+
+    def test_missing_knowledge_dir_warns(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = Config(DEFAULTS, Path(tmp))  # no vault scaffolded
+            issues = vault_sync.check_knowledge_index(cfg)
+            self.assertEqual([l for l, _ in issues], ["WARN"])
+
     def test_index_link_to_missing_file_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             cfg, v = self._vault(tmp)

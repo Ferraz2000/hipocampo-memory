@@ -28,6 +28,24 @@ from .. import inbox_decay
 
 URL_RE = re.compile(r"https?://[\w\-\.]+(?:/[\w\-\./?=&%#~+]*)?", re.IGNORECASE)
 
+# Best-effort secret scrubbing: the sweep is an automated, ungated write, so we
+# never want a pasted credential landing verbatim in the (git-versioned) inbox.
+_SECRET_RES = [
+    # key/identifier (incl. UNDERSCORE_JOINED env vars) followed by is/=/: and a value
+    re.compile(r"(?i)\b\w*(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|"
+               r"client[_-]?secret|authorization|bearer|credential)\w*\s*(?:is|=|:)\s*\S+"),
+    re.compile(r"AKIA[0-9A-Z]{12,16}"),                 # AWS key id (also if snippet-truncated)
+    re.compile(r"-----BEGIN[A-Z ]*PRIVATE KEY-----"),
+    re.compile(r"(?i)\b[a-z0-9._%+-]+:[^\s/@]{6,}@"),   # user:pass@ in a URL
+]
+
+
+def redact(text):
+    """Replace obvious secret shapes with [REDACTED]. Best-effort, not a guarantee."""
+    for rx in _SECRET_RES:
+        text = rx.sub("[REDACTED]", text)
+    return text
+
 
 def _trigger_re(words):
     if not words:
@@ -119,16 +137,16 @@ def scan_transcript(transcript_path, cfg):
             if not text:
                 continue
             low = text.lower()
-            if "/registra" in low or "registra isso" in low or "save to the brain" in low:
+            if any(v.lower() in low for v in cfg.capture_verbs):
                 registra_invoked = True
             pat = user_re if role == "user" else (agent_re if role == "assistant" else None)
             if pat is not None:
                 for m in pat.finditer(text):
                     snippet = text[max(0, m.start() - 60): m.end() + 80].replace("\n", " ")
-                    triggers_hit.append((m.group(0), snippet.strip()))
+                    triggers_hit.append((m.group(0), redact(snippet.strip())))
             for u in URL_RE.findall(text):
                 if is_external(u, cfg.capture_internal_hosts):
-                    urls.add(u)
+                    urls.add(redact(u))
     return triggers_hit, urls, registra_invoked
 
 
@@ -148,8 +166,11 @@ def _render_sweep(date, short, session_id, sweep_type, triggers_hit, urls):
              ">",
              "> - **Durable concept** → move to `knowledge/<area>/<slug>.md`",
              "> - **External source** → move to `raw/sources/<date>-<slug>.md`",
-             "> - **Persona/preference** → append to `.claude/rules/USER.md`",
+             "> - **Persona/preference** → append to your agent rules file (e.g. `.claude/rules/USER.md`)",
              "> - **Not worth it** → delete this file",
+             ">",
+             "> ⚠ **SECURITY:** secret-shaped strings were auto-redacted (best-effort, not a"
+             " guarantee). Review for any leaked credential/PII before committing this sweep.",
              ">",
              "> Boundary heuristic: contract (gated) vs concept (knowledge/) — see capture.md.",
              ""]
@@ -186,7 +207,10 @@ def main(argv=None):
     if not transcript_path or not os.path.exists(transcript_path):
         return 0
 
-    cfg = _config.load_config(start=os.environ.get("CLAUDE_PROJECT_DIR"))
+    try:
+        cfg = _config.load_config(start=os.environ.get("CLAUDE_PROJECT_DIR"))
+    except _config.ConfigError:
+        return 0  # bad config shouldn't break the session's Stop hook
     cfg.inbox_dir.mkdir(parents=True, exist_ok=True)
 
     try:  # housekeeping: expire stale sweeps

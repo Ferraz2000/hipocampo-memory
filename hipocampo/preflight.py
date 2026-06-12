@@ -14,7 +14,11 @@ from . import config as _config
 
 
 def main(argv=None):
-    cfg = _config.load_config()
+    try:
+        cfg = _config.load_config()
+    except _config.ConfigError as e:
+        print(f"preflight: {e}")
+        return 1
     names = cfg.validators
     if not names:
         print("preflight: no validators configured.")
@@ -28,7 +32,11 @@ def main(argv=None):
         except ModuleNotFoundError:
             print(f"SKIP (unknown validator '{name}')")
             continue
-        rc = mod.main([])
+        try:
+            rc = mod.main([])
+        except _config.ConfigError as e:
+            print(str(e))
+            rc = 1
         if rc != 0:
             failed.append(name)
             print(f"FAILED ({name}, exit {rc})")

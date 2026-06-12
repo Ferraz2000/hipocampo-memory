@@ -57,6 +57,13 @@ class DocSyncTest(unittest.TestCase):
     def test_no_rules_means_no_failures(self):
         self.assertEqual(failures(["src/app/migrations/001.cs"], _cfg()), [])
 
+    def test_docs_entry_accepts_globs(self):
+        cfg = _cfg(doc_sync=[{"name": "src", "paths": ["src/**"], "docs": ["docs/**/*.md"]}])
+        # source changed, no doc at all -> fail
+        self.assertEqual(len(failures(["src/a.go"], cfg)), 1)
+        # source changed + a doc matching the glob -> pass
+        self.assertEqual(failures(["src/a.go", "docs/area/note.md"], cfg), [])
+
 
 if __name__ == "__main__":
     unittest.main()

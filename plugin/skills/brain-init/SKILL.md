@@ -28,8 +28,11 @@ skills cannot scaffold — say so instead of half-running.
    they ship with `.gitkeep`; a recursive copy keeps them. Then replace the
    `{{DATE}}` placeholder with today's date (ISO `YYYY-MM-DD`) in every copied file.
 4. **Verify.** Grep the copied vault for residual `{{DATE}}` (fail and re-render if
-   any remain), then run `python3 -m hipocampo.validators.vault_sync` (use `python`
-   if `python3` isn't on PATH) — a fresh vault must pass (index present, no FAILs).
+   any remain), then run vault_sync. The `hipocampo` package isn't vendored yet
+   (that's `brain-scripts-init`), so run it from the kit:
+   `PYTHONPATH=${CLAUDE_PLUGIN_ROOT} python3 -m hipocampo.validators.vault_sync`
+   (use `python` if `python3` isn't on PATH). A fresh vault must pass (index
+   present, no FAILs).
 5. **Report** in a few lines: vault root, language, areas, files created. Point the
    user at `capture.md` (how chat becomes durable notes) and `context-budget.md`
    (index-first reads).

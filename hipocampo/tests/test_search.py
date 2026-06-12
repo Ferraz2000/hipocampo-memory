@@ -61,6 +61,16 @@ class RunSearchTest(unittest.TestCase):
             shown, _ = run_search("onboarding", cfg=cfg, no_index=True, all_statuses=True)
             self.assertEqual(len(shown), 1)
 
+    def test_index_md_excluded_from_results(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, kn = self._vault(tmp)
+            (kn / "index.md").write_text(_note(title="Index", body="onboarding onboarding"), encoding="utf-8")
+            (kn / "real.md").write_text(_note(title="Real", body="onboarding flow"), encoding="utf-8")
+            results, _ = run_search("onboarding", cfg=cfg, no_index=True)
+            paths = [r[0].replace("\\", "/") for r in results]
+            self.assertTrue(paths)
+            self.assertFalse(any(p.endswith("knowledge/index.md") for p in paths))
+
     def test_empty_query_returns_nothing(self):
         with tempfile.TemporaryDirectory() as tmp:
             cfg, _ = self._vault(tmp)

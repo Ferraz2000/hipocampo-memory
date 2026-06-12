@@ -28,7 +28,11 @@ def check_router(cfg):
 
 
 def main(argv=None):
-    cfg = _config.load_config()
+    try:
+        cfg = _config.load_config()
+    except _config.ConfigError as e:
+        print(f"router-lint: {e}")
+        return 1
     issues = check_router(cfg)
     for level, msg in issues:
         print(f"{level}  {msg}")
