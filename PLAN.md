@@ -49,7 +49,7 @@ Hybrid, one git repo as source:
 | 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`registra`, `discovery`, `spec`, `busca`) + hooks (SessionStart briefing, Stop capture-sweep) + plugin/marketplace | ✅ done |
 | 5 | Vault templates + limiter docs (`capture.md`, `context-budget.md`, `README.md`, `knowledge/index.md`, `log.md`, note templates) — **bilingual EN + pt-BR** | ✅ done |
 | 6 | Improvements from research (below) as incremental PRs | ⬜ pending |
-| 7 | Dogfood on a fresh non-private project; then migrate the origin project to consume the kit | ⬜ pending |
+| 7 | Dogfood: Go repo (mechanical, 8/8) + Node repo (live agent-walkthrough of the corrected skills, all green) — found & fixed real prose/hook gaps (v0.2.1). Origin-project-as-consumer still pending (production, on owner confirmation) | 🟡 dogfood done; migration pending |
 
 ## Script port status (origin → `hipocampo/`)
 
