@@ -10,6 +10,15 @@ installed (hooks/CI need the package importable at the repo root).
 
 ## Steps
 
+0. **One `AskUserQuestion` round** (3 questions, then act — no more asking):
+   - **Which agents are in use?** (multiSelect: Claude Code / Codex / Gemini) —
+     Codex → mirror skills into `.agents/skills/`; Gemini → set
+     `contextFileName: AGENTS.md`.
+   - **Install the CI workflow?** (not every repo uses GitHub Actions — skip
+     step 3 if no)
+   - **Native auto-memory policy**: disable (`autoMemoryEnabled: false`) /
+     redirect (`autoMemoryDirectory` → the vault inbox, promoted via the
+     write-gate) / leave as is.
 1. **Vendor the package.** Copy `${CLAUDE_PLUGIN_ROOT}/hipocampo/` to the repo root
    as `hipocampo/` (exclude `tests/`). Get the version from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` (`version` field) and the
@@ -33,11 +42,8 @@ installed (hooks/CI need the package importable at the repo root).
    otherwise push-mode CI never triggers.
 4. **Sanity check.** Run `python3 -m hipocampo.preflight` and report the result. A
    repo with no `[[doc_sync]]` rules yet passes cleanly.
-5. **Native auto-memory policy.** Claude Code's auto-memory writes outside git
-   without a write-gate, competing with the vault. Offer to either disable it
-   (`autoMemoryEnabled: false` in `.claude/settings.json`) or point
-   `autoMemoryDirectory` at the vault inbox so the capture-sweep promotes it
-   through the write-gate. Let the user choose; don't change settings silently.
+5. **Apply the auto-memory answer** from step 0 in `.claude/settings.json`
+   (never change settings silently beyond what was chosen).
 6. **Report** what was vendored + how to add the first doc-sync rule (point to the
    `[[doc_sync]]` block in `brain.config.toml`).
 

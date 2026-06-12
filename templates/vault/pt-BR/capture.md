@@ -21,7 +21,7 @@ faz o *bookkeeping*. É o padrão "LLM wiki" (Karpathy) adaptado a este repo.
 
 - **Modelo: híbrido por tipo.** A fonte da verdade é dividida pela *natureza* do
   conhecimento (tabela abaixo) — não é "wiki única" nem "tudo promovido".
-- **Gatilho: verbo explícito + agente proativo (nível `equilibrado`).**
+- **Gatilho: verbo explícito + agente proativo (nível `{{CAPTURE_LEVEL}}`).**
 - **Write-gate humano.** O agente nunca grava sozinho sem um "ok" — seja o verbo
   explícito, seja você aceitando a proposta proativa.
 
@@ -77,7 +77,7 @@ O agente **propõe** registrar (não grava) quando detecta, na conversa:
 - uma **preferência/persona** durável ("prefiro", "agora sempre", "me incomoda quando", "não me faça repetir") → propõe registrar em `.claude/rules/USER.md`.
 
 (Níveis: `conservador` = só decisões/contratos; `equilibrado` = + aprendizados e
-fontes; `agressivo` = + qualquer conceito/definição novo. Padrão: **equilibrado**.)
+fontes; `agressivo` = + qualquer conceito/definição novo. Este vault: **{{CAPTURE_LEVEL}}**.)
 
 ### Guardrails anti-nag
 

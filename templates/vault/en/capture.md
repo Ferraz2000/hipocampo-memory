@@ -22,7 +22,7 @@ pattern (Karpathy) adapted into this repo.
 
 - **Model: hybrid by type.** The source of truth is split by the *nature* of the
   knowledge (table below) — not "one wiki", not "everything promoted".
-- **Trigger: explicit verb + proactive agent (level `balanced`).**
+- **Trigger: explicit verb + proactive agent (level `{{CAPTURE_LEVEL}}`).**
 - **Human write-gate.** The agent never writes on its own without an "ok" — the
   explicit verb, or you accepting a proactive offer.
 
@@ -79,7 +79,7 @@ conversation:
 - a durable **preference/persona** ("I prefer", "from now on", "it bugs me when", "don't make me repeat") → offers to record in `.claude/rules/USER.md`.
 
 (Levels: `conservative` = decisions/contracts only; `balanced` = + lessons and
-sources; `aggressive` = + any new concept/definition. Default: **balanced**.)
+sources; `aggressive` = + any new concept/definition. This vault: **{{CAPTURE_LEVEL}}**.)
 
 ### Anti-nag guardrails
 

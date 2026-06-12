@@ -10,13 +10,33 @@ measurably tax reasoning, so keep it concrete (commands, paths) and brief.
 
 ## Steps
 
+Read `project_mode` from `brain.config.toml` (set by `brain-init`) and branch:
+
+**Existing project — detect, then CONFIRM (one `AskUserQuestion` round):**
+
 1. **Detect the stack.** Inspect manifests to identify language/build/test:
    `package.json`, `pyproject.toml`/`requirements.txt`, `go.mod`, `Cargo.toml`,
    `*.csproj`/`*.sln`, `pom.xml`/`build.gradle`, `Gemfile`, etc. Note the test and
-   build commands.
-2. **Map subsystems.** Skim top-level source dirs to list the few real areas of the
-   repo (don't over-enumerate).
-3. **Write `AGENTS.md`** at the repo root with these sections, lean:
+   build commands and the base branch.
+2. **Map subsystems** (skim top-level source dirs) and **propose doc-sync
+   candidates**: the dirs whose changes should require a doc in the same commit
+   (contracts, persistence/migrations, public API, auth). Then ONE
+   `AskUserQuestion` round:
+   - confirm the detected stack/build/test/base-branch;
+   - **multiSelect**: "which of these areas deserve the doc-sync gate?" — write
+     the picked ones as `[[doc_sync]]` rules in `brain.config.toml` (the gate is
+     born configured, not empty);
+   - confirm the architectural pattern if one is visible (Clean/VSA/hexagonal/
+     MVC/none) — it becomes a placement rule in the router.
+
+**Greenfield — ask, then generate (one `AskUserQuestion` round, up to 4):**
+main **language/stack** (+ framework) · desired **architecture pattern** ·
+**test conventions** (framework, TDD?, coverage target) · **commit/PR style**
+(conventional commits? base branch? squash?). Generate the router, the
+build/test commands, and starter `[[doc_sync]]` rules from the answers.
+3. **Write `AGENTS.md`** at the repo root with these sections, lean (when
+   `team = true` in the config, include the PR-workflow rule and suggest
+   protecting the vault branch):
    - **Read order**: the touched subsystem's doc → nearest subtree `AGENTS.md` →
      area skill → `<vault>/knowledge/index.md` (index-first) for non-trivial work.
    - **Build/test**: the exact commands detected.

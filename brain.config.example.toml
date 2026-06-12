@@ -15,6 +15,10 @@ vault_root = "docs/brain"
 # Drives which locale the generator skills emit; does not affect script logic.
 language = "en"
 
+# Interview answers recorded by /brain-init (read by the other generator skills).
+project_mode = "existing"   # "existing" | "greenfield"
+team = false                # true → PR-workflow rules + protected-branch suggestion
+
 # Base branch for the git-derived session briefing (SessionStart hook) and for
 # doc-sync diff ranges.
 base_branch = "main"

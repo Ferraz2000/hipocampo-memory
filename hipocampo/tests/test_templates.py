@@ -42,7 +42,7 @@ class TemplatesTest(unittest.TestCase):
                 shutil.copytree(VAULT_TEMPLATES / loc, vault)
                 # Render the date placeholder the generator would fill in.
                 for md in vault.rglob("*.md"):
-                    md.write_text(md.read_text(encoding="utf-8").replace("{{DATE}}", "2026-06-12"),
+                    md.write_text(md.read_text(encoding="utf-8").replace("{{DATE}}", "2026-06-12").replace("{{CAPTURE_LEVEL}}", "balanced"),
                                   encoding="utf-8")
                 cfg = Config(DEFAULTS, root)
                 results = (vault_sync.check_knowledge_index(cfg)
