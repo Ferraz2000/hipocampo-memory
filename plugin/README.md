@@ -34,4 +34,9 @@ root (or it can be `pip install`ed). Both hooks are config-driven and never bloc
 - **Workflow:** `registra` (capture, write-gated), `busca` (search), `discovery`
   (broad vault read), `spec` (mini design doc), `challenge` (confront a decision
   with the vault's past reversals), `discover-standards` (mine code → candidate
-  convention insights).
+  convention insights), `garden` (lint/consolidation), `archive-closed` (compact
+  terminal insights).
+- **Insight lifecycle:** `from-roadmap` (what next), `promote` (insight → spec/
+  ADR/issue), `implement` (build an approved spec), `execute-insight` (one insight,
+  two commits), `weekly` (triage cycle), `postmortem` (lessons from a branch),
+  `audita` (fact-check a page vs its sources), `low-token` (lean mode).

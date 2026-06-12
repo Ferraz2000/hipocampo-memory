@@ -12,6 +12,8 @@ EXPECTED_SKILLS = {
     "brain-init", "brain-router-init", "brain-scripts-init", "brain-update",
     "registra", "busca", "discovery", "spec",
     "challenge", "discover-standards", "garden", "archive-closed",
+    "execute-insight", "from-roadmap", "implement", "promote",
+    "weekly", "postmortem", "audita", "low-token",
 }
 
 

@@ -1,7 +1,7 @@
 {
   "name": "hipocampo",
   "displayName": "hipocampo",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Persistent, git-versioned, human-gated memory for coding agents — vault scaffolding, capture, BM25/FTS5 search, and a config-driven doc-sync gate.",
   "author": { "name": "Lucas Moraes" },
   "homepage": "https://github.com/Ferraz2000/hipocampo",
