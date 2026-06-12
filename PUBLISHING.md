@@ -36,35 +36,16 @@ npx skills add Ferraz2000/hipocampo
 
 ## Listing in the official community marketplace (for discovery)
 
-`anthropics/claude-plugins-community` is the reviewed, SHA-pinned community
-catalog surfaced at claude.com/plugins. To submit:
+`anthropics/claude-plugins-community` is a **read-only mirror** of Anthropic's
+internal review pipeline — PRs against it are closed automatically. To get
+listed (surfaced at claude.com/plugins and installable via
+`claude plugin install hipocampo@claude-community`):
 
-1. Fork `anthropics/claude-plugins-community`.
-2. Add an entry to its `.claude-plugin/marketplace.json` `plugins` array,
-   pinning a release commit (use a tag's SHA: `git rev-list -n1 vX.Y.Z`):
-   ```json
-   {
-     "name": "hipocampo",
-     "source": {
-       "source": "github",
-       "repo": "Ferraz2000/hipocampo",
-       "sha": "<40-char SHA of the release tag>"
-     },
-     "description": "Persistent, git-versioned, human-gated memory for coding agents.",
-     "category": "productivity",
-     "tags": ["memory", "second-brain", "knowledge", "doc-sync"]
-   }
-   ```
-3. Open a PR following that repo's CONTRIBUTING. Their automation validates the
-   plugin; once merged, users install via
-   `/plugin marketplace add anthropics/claude-plugins-community` →
-   `/plugin install hipocampo@claude-plugins-community`.
-4. Bumping the kit later = a new PR moving the pinned SHA.
-
-Validate locally before submitting:
-```sh
-claude plugin validate . --strict   # if the Claude Code CLI is installed
-```
+1. Submit the repo URL via the official form:
+   **https://clau.de/plugin-directory-submission** (claude.ai account).
+2. Before submitting, make sure `claude plugin validate . --strict` passes and
+   the release you want listed is tagged (the pipeline pins a commit SHA).
+3. Updates flow the same way — resubmit/notify with the new release.
 
 ## Third-party directories (optional)
 
