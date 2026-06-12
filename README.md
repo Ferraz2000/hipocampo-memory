@@ -10,9 +10,63 @@ stop forgetting between sessions and stop relearning the same things.
 > write-gated pipeline that moves an `_inbox/` of raw captures into a curated,
 > auditable `knowledge/` base that lives in your repo and compounds over time.
 
-> ⚠️ **Status: early (v0.0.x), under active extraction.** The kit is being
-> extracted and generalized from a battle-tested private system. See
-> [`PLAN.md`](PLAN.md) for what's shipped vs pending.
+**Status: v0.6.x — usable.** 94 tests, CI green, validated end-to-end five times
+(mechanical dogfood in Go, a live agent walkthrough in Node, an independent
+adversarial audit, a post-fix re-audit with real CI + real plugin install, and a
+production project migrated as the first consumer). See [`PLAN.md`](PLAN.md).
+
+## Quickstart (2 minutes)
+
+```sh
+/plugin marketplace add Ferraz2000/hipocampo     # Claude Code (skills + hooks)
+/plugin install hipocampo@hipocampo
+# or cross-agent (Claude Code / Codex / Gemini), skills only:
+npx skills add Ferraz2000/hipocampo
+```
+
+Then, in your project, you only need **three skills** to start:
+
+```
+/brain-init             # scaffold the vault + brain.config.toml
+/registra <something>   # capture a decision/lesson as a reviewable note
+/busca <terms>          # search what the brain already knows
+```
+
+Everything else (router generation, vendored gates, the insight lifecycle) is
+there when you want it — see [the full toolbox](#the-full-toolbox). Don't learn
+it up front.
+
+## What it looks like (before / after)
+
+**Before** — the agent changes a sensitive area; the doc silently rots:
+
+```sh
+$ git commit -m "feat: change persistence model"
+[main abc1234] feat: change persistence model      # doc drift starts here
+```
+
+**After** — the doc-sync gate (pre-commit → pre-push → CI, same rule) blocks it:
+
+```sh
+$ git commit -m "feat: change persistence model"
+feature-doc-sync validation FAILED
+  Sensitive area changed without its doc update: persistence
+  Files:  src/app/migrations/0042_split.sql
+  Update one of: docs/architecture/persistence.md
+$ git add docs/architecture/persistence.md && git commit ...   # passes
+```
+
+And memory becomes a **reviewable diff**, not a black box:
+
+```diff
++ docs/brain/knowledge/architecture/error-style.md   # /registra wrote this
++ docs/brain/knowledge/index.md                       # +1 index line
++ docs/brain/log.md                                   # +1 dated log line
+```
+
+Agent proposes → you approve → it lands in git → `vault_sync` keeps it honest
+(provenance, index, vocabulary). `python -m hipocampo.canary` proves the gates
+bite against *your* config (7 adversarial scenarios).
 
 ## Why this and not a memory framework
 
@@ -23,6 +77,10 @@ OpenClaw/memsearch, basic-memory — independently). DB-backed memory
 benchmarks. hipocampo's bet is the durable one, plus the piece no published
 framework ships well: **governance** — a human write-gate, frontmatter-as-truth,
 and a per-commit doc-sync gate.
+
+> **Teams:** the write-gate is protocol-enforced (a cooperating agent + git
+> review). For hard enforcement, put the vault behind a **protected branch with
+> required PR review** — see the [threat model](docs/ARCHITECTURE.md#threat-model-honest-limits).
 
 ## How it works (the layers)
 
@@ -39,26 +97,22 @@ Reads are **index-first** (Karpathy LLM-wiki): the agent reads a cheap
 (context-rot defense). Writes go through a **human write-gate** (`/registra`):
 the agent proposes, you approve, the agent files and reports.
 
-## Install (planned)
+## The full toolbox
 
-Two tracks from one repo:
+20 skills, grouped — adopt incrementally:
 
-```sh
-# cross-agent skills (Claude Code, Codex, Gemini) — once published
-npx skills add Ferraz2000/hipocampo
+- **Setup (once):** `brain-init`, `brain-router-init`, `brain-scripts-init`,
+  `brain-update`.
+- **Daily:** `registra` (capture), `busca` (search), `low-token` (lean mode).
+- **Thinking:** `challenge` (confront a decision with past reversals),
+  `discovery` (bounded broad read), `spec`, `discover-standards`.
+- **Insight lifecycle:** `from-roadmap` → `promote` → `implement` /
+  `execute-insight` → `weekly` / `postmortem` / `audita`.
+- **Maintenance:** `garden`, `archive-closed` (+ `python -m hipocampo.normalize`
+  fixer and the `canary` self-test).
 
-# Claude Code plugin (skills + hooks + scripts) — once published
-/plugin marketplace add Ferraz2000/hipocampo
-/plugin install hipocampo@hipocampo
-```
-
-Then scaffold a vault into the current project:
-
-```
-/brain-init          # generate the vault + brain.config.toml
-/brain-router-init   # generate AGENTS.md router for this language/stack
-/brain-scripts-init  # vendor the validation scripts + git hooks + CI
-```
+Plus two hooks (SessionStart git briefing, Stop capture-sweep with secret
+redaction) and nine config-driven validators run by `preflight`.
 
 ## Configuration
 
@@ -75,13 +129,18 @@ hipocampo/                 # the python package (zero-dep, stdlib only)
   frontmatter.py           # YAML-ish frontmatter parser
   search.py                # pure-BM25 keyword search over the vault
   index.py                 # optional SQLite FTS5 index + RRF graph fusion
+  views.py                 # dataview DQL -> static markdown mirrors
+  normalize.py             # vocabulary fixer (vault_sync flags; this repairs)
+  canary.py                # adversarial self-test of the gates vs YOUR config
   inbox_decay.py           # expire stale capture-sweeps
   globs.py                 # gitignore-style ** path matching
   vault.py                 # markdown page model (frontmatter-as-truth)
   preflight.py             # run all configured validators (hook + CI entry)
-  validators/              # doc_links, feature_doc_sync (doc-sync gate), vault_sync
-  tests/                   # stdlib unittest
-plugin/                    # Claude Code plugin (skills, hooks) — WIP
+  validators/              # doc_links, feature_doc_sync (doc-sync gate),
+                           # vault_sync, views_fresh, router_lint, catalog_sync
+  hooks/                   # session_start, capture_sweep, ensure_githooks
+  tests/                   # stdlib unittest (94)
+plugin/                    # Claude Code plugin (20 skills + hooks.json)
 templates/                 # scaffolded into target repos
   githooks/                # pre-commit (doc-sync gate) + pre-push (preflight)
   ci/                      # agent-docs workflow

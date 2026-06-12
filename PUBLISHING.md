@@ -20,7 +20,9 @@ npx skills add Ferraz2000/hipocampo
 ## Cutting a release
 
 1. Bump `version` in **both** `.claude-plugin/plugin.json` and
-   `.claude-plugin/marketplace.json` (semver).
+   `.claude-plugin/marketplace.json` (semver). **Check the README's Status line
+   and skill/validator counts still match reality** — README drift is the one
+   thing no validator catches.
 2. Update `PLAN.md` if scope changed; make sure `python -m unittest discover -s
    hipocampo/tests` is green and CI passes.
 3. Tag and release:
