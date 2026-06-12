@@ -51,6 +51,11 @@ DEFAULTS = {
         "decided", "decision is", "from now on", "always", "rule of thumb",
         "lesson learned", "trade-off", "anti-pattern", "canonical",
     ],
+    # Phrases that count as a capture trigger only in AGENT messages (pattern
+    # declarations), kept separate to cut noise from the agent's own narration.
+    "capture_agent_triggers": ["anti-pattern", "canonical", "consolidated pattern"],
+    # Hosts treated as internal — URLs containing these are NOT swept as sources.
+    "capture_internal_hosts": ["localhost", "127.0.0.1"],
     "required_docs": [],
     "validators": ["doc_links", "feature_doc_sync", "vault_sync"],
     "doc_sync": [],
@@ -193,6 +198,14 @@ class Config:
     @property
     def capture_triggers(self) -> list:
         return list(self._d["capture_triggers"])
+
+    @property
+    def capture_agent_triggers(self) -> list:
+        return list(self._d["capture_agent_triggers"])
+
+    @property
+    def capture_internal_hosts(self) -> list:
+        return list(self._d["capture_internal_hosts"])
 
     @property
     def validators(self) -> list:

@@ -1,0 +1,14 @@
+{
+  "name": "hipocampo",
+  "displayName": "hipocampo",
+  "version": "0.1.0",
+  "description": "Persistent, git-versioned, human-gated memory for coding agents — vault scaffolding, capture, BM25/FTS5 search, and a config-driven doc-sync gate.",
+  "author": "Lucas Moraes",
+  "homepage": "https://github.com/Ferraz2000/HipoCampo",
+  "repository": "https://github.com/Ferraz2000/HipoCampo",
+  "license": "MIT",
+  "keywords": [
+    "memory", "agents", "second-brain", "obsidian", "knowledge",
+    "claude-code", "codex", "gemini", "doc-sync"
+  ]
+}

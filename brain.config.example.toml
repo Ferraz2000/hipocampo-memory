@@ -66,6 +66,11 @@ capture_triggers = [
   "decided", "decision is", "from now on", "always", "rule of thumb",
   "lesson learned", "trade-off", "anti-pattern", "canonical",
 ]
+# Triggers that count only in AGENT messages (pattern declarations), kept apart
+# to cut noise from the agent's own narration.
+capture_agent_triggers = ["anti-pattern", "canonical", "consolidated pattern"]
+# Hosts treated as internal — URLs containing these are not swept as sources.
+capture_internal_hosts = ["localhost", "127.0.0.1"]
 
 # Required docs (routing contract): these must exist, or doc_links fails.
 required_docs = []
