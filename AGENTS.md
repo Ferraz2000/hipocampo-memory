@@ -7,9 +7,13 @@ operational (vague, long instruction files measurably tax reasoning).
 
 1. [`PLAN.md`](PLAN.md) — phases + port status. Read before adding code so you
    know which increment you're in.
-2. The target file's module docstring.
-3. [`brain.config.example.toml`](brain.config.example.toml) — the config schema
+2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the parts fit (when scope
+   is unclear).
+3. The target file's module docstring.
+4. [`brain.config.example.toml`](brain.config.example.toml) — the config schema
    every script reads from.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the non-negotiables.
 
 ## Rules
 

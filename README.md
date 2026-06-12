@@ -90,6 +90,13 @@ brain.config.example.toml  # documented config schema
 PLAN.md                    # extraction roadmap + port status
 ```
 
+## Docs
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how it works (consolidated).
+- [PLAN.md](PLAN.md) — phases, decisions, port status.
+- [PUBLISHING.md](PUBLISHING.md) — releases + community-marketplace submission.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — dev setup + non-negotiables.
+
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
