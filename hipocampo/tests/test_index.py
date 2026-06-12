@@ -29,6 +29,25 @@ class PureHelpersTest(unittest.TestCase):
             self.assertEqual(links, ["kn/b.md"])
 
 
+class Fts5AbsentTest(unittest.TestCase):
+    def test_search_falls_back_when_fts5_unavailable(self):
+        """Simulate a sqlite build without FTS5: search must use pure BM25."""
+        from unittest import mock
+        from hipocampo import search as s
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kn = root / "docs/brain/knowledge"
+            kn.mkdir(parents=True)
+            (kn / "a.md").write_text("onboarding flow", encoding="utf-8")
+            cfg = Config(DEFAULTS, root)
+            with mock.patch.object(index, "fts5_available", return_value=False):
+                results, _ = s.run_search("onboarding", cfg=cfg)  # no no_index flag
+            self.assertTrue(results)
+            self.assertTrue(results[0][0].endswith("a.md"))
+            # and no index file was created (BM25 path, not FTS5)
+            self.assertFalse((cfg.cache_dir / "vault-index.sqlite3").exists())
+
+
 @unittest.skipUnless(fts5_available(), "sqlite without FTS5")
 class IndexTest(unittest.TestCase):
     def _vault(self, tmp):

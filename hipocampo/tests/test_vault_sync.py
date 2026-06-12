@@ -40,6 +40,17 @@ class VaultSyncTest(unittest.TestCase):
                 "- [note](meta/note.md) — hook\n", encoding="utf-8")
             self.assertEqual(vault_sync.check_knowledge_index(cfg), [])
 
+    def test_prose_mention_without_link_does_not_satisfy_index(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, v = self._vault(tmp)
+            (v / "knowledge/meta").mkdir()
+            (v / "knowledge/meta/note.md").write_text("# note\n", encoding="utf-8")
+            (v / "knowledge/index.md").write_text(
+                "we casually mention meta/note.md and even (meta/note.md) in prose\n",
+                encoding="utf-8")
+            issues = vault_sync.check_knowledge_index(cfg)
+            self.assertTrue(any("note.md" in m for _, m in issues))
+
     def test_nested_page_still_requires_index_entry(self):
         with tempfile.TemporaryDirectory() as tmp:
             cfg, v = self._vault(tmp)

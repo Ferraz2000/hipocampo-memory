@@ -74,6 +74,37 @@ class ScanTranscriptTest(unittest.TestCase):
 
 
 class SessionStartTest(unittest.TestCase):
+    def test_base_falls_back_to_master_when_main_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init", "-q", "-b", "master"], cwd=root)
+            subprocess.run(["git", "config", "user.email", "t@t"], cwd=root)
+            subprocess.run(["git", "config", "user.name", "t"], cwd=root)
+            (root / "a.txt").write_text("x", encoding="utf-8")
+            subprocess.run(["git", "add", "-A"], cwd=root)
+            subprocess.run(["git", "commit", "-qm", "init"], cwd=root)
+            subprocess.run(["git", "checkout", "-q", "-b", "feature"], cwd=root)
+            (root / "b.txt").write_text("y", encoding="utf-8")
+            subprocess.run(["git", "add", "-A"], cwd=root)
+            subprocess.run(["git", "commit", "-qm", "work"], cwd=root)
+            cfg = Config(DEFAULTS, root)  # base_branch=main, repo only has master
+            out = ss.build_briefing(cfg)
+            self.assertIn("ahead of master", out)
+            self.assertNotIn("ahead of main", out)
+
+    def test_single_branch_repo_reports_no_base(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init", "-q", "-b", "master"], cwd=root)
+            subprocess.run(["git", "config", "user.email", "t@t"], cwd=root)
+            subprocess.run(["git", "config", "user.name", "t"], cwd=root)
+            (root / "a.txt").write_text("x", encoding="utf-8")
+            subprocess.run(["git", "add", "-A"], cwd=root)
+            subprocess.run(["git", "commit", "-qm", "init"], cwd=root)
+            cfg = Config(DEFAULTS, root)
+            out = ss.build_briefing(cfg)
+            self.assertIn("No base branch resolved", out)
+
     def test_briefing_on_real_repo(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

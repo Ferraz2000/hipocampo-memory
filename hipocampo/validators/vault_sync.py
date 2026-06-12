@@ -49,9 +49,15 @@ def check_knowledge_index(cfg):
             continue  # _inbox/ sweeps in triage
         pages_on_disk.add(rel.as_posix())
 
+    # Entries must be real markdown links, not prose mentions (substring was
+    # satisfiable by any parenthesized path in prose).
+    link_targets = set()
+    for m in re.finditer(r"\]\(([^)]+)\)", index_text):
+        target = m.group(1).strip().split("#", 1)[0]
+        link_targets.add(target.lstrip("./"))
     for rel in sorted(pages_on_disk):
         slug = rel[:-3]
-        if f"({rel})" not in index_text and f"({slug})" not in index_text:
+        if rel not in link_targets and slug not in link_targets:
             area = rel.split("/", 1)[0]
             issues.append(("FAIL", f"[Index] knowledge/{rel}: page has no entry in knowledge/index.md — add one line under area '{area}'"))
 

@@ -80,6 +80,16 @@ govern:    pre-commit ──▶ feature_doc_sync (blocks sensitive code w/o its 
 - **Zero runtime dependencies.** stdlib-only Python so it runs in any container/CI.
 - **Config-driven.** All project-specifics in `brain.config.toml`.
 
+## Threat model (honest limits)
+
+The **write-gate is protocol-enforced, not technically enforced**: skills instruct
+the agent to propose before writing durable memory; nothing physically stops a
+misbehaving agent from writing to `knowledge/` directly. The validators catch
+*drift* (missing index entries, broken provenance, off-vocabulary status), and the
+capture sweep redacts secret-shaped strings — but the model assumes a
+**cooperating agent + human review via git diff**. If you need hard enforcement,
+put the vault behind a protected branch and review PRs.
+
 ## Distribution
 
 Two tracks, one repo: a Claude Code **plugin** (skills + hooks, via marketplace)
