@@ -24,7 +24,9 @@ measurably tax reasoning, so keep it concrete (commands, paths) and brief.
      `<vault>/context-budget.md` (never bulk-read the vault).
    - **Doc-sync**: note that `[[doc_sync]]` rules in `brain.config.toml` gate
      sensitive areas (the pre-commit hook blocks a change lacking its doc).
-   - **Global rules**: only concrete, enforceable ones.
+   - **Global rules**: only concrete, enforceable ones. Include the recitation
+     rule for long tasks: re-state the working todo at each phase boundary to fight
+     lost-in-the-middle (Manus).
 4. **Write `CLAUDE.md`** containing just `@AGENTS.md` (the official Claude Code
    bridge), unless one already exists — then append the import if missing.
 5. **Seed `.claude/rules/USER.md`** (persona/preferences, the 4th memory layer) if

@@ -11,7 +11,7 @@ SKILLS_DIR = REPO_ROOT / "plugin" / "skills"
 EXPECTED_SKILLS = {
     "brain-init", "brain-router-init", "brain-scripts-init", "brain-update",
     "registra", "busca", "discovery", "spec",
-    "challenge", "discover-standards",
+    "challenge", "discover-standards", "garden", "archive-closed",
 }
 
 

@@ -77,8 +77,8 @@ Hybrid, one git repo as source:
 - ✅ #9 `/discover-standards` skill — mine the code, propose conventions as candidate insights.
 - ✅ #10 temporal validity (`valid_until` in the knowledge template + vault_sync warning).
 - ✅ #11 router-lint validator (opt-in `router_lint`: lean AGENTS.md size cap).
-- ⬜ #5 lint/gardener pass (contradictions, stale, orphans; ingest updates old pages).
-- ⬜ #6 semantic compaction of closed insights into an archive index (beads).
-- ⬜ #7 optional local semantic search (FastEmbed + disposable SQLite) alongside BM25.
-- ⬜ #12 recitation in long flows; strict progressive disclosure (bootstrap <2k tokens).
+- ✅ #5 `/garden` skill — lint/gardener pass (contradictions, stale, orphans, missing links).
+- ✅ #6 `/archive-closed` skill — semantic compaction of terminal insights into an archive index.
+- ✅ #12 recitation guidance folded into `brain-router-init` (re-state the todo at phase boundaries).
+- ⬜ #7 optional local semantic search (FastEmbed + disposable SQLite) — **deferred by design**: breaks the zero-dependency promise; ship as an opt-in add-on later.
 - ⬜ optional Phase 5b: `views.py` (DQL→markdown materialized views) for Obsidian dashboards.
