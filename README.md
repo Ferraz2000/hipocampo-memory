@@ -76,9 +76,16 @@ hipocampo/                 # the python package (zero-dep, stdlib only)
   search.py                # pure-BM25 keyword search over the vault
   index.py                 # optional SQLite FTS5 index + RRF graph fusion
   inbox_decay.py           # expire stale capture-sweeps
+  globs.py                 # gitignore-style ** path matching
+  vault.py                 # markdown page model (frontmatter-as-truth)
+  preflight.py             # run all configured validators (hook + CI entry)
+  validators/              # doc_links, feature_doc_sync (doc-sync gate), vault_sync
   tests/                   # stdlib unittest
 plugin/                    # Claude Code plugin (skills, hooks) — WIP
-templates/                 # scaffolded into target repos (vault, githooks, CI) — WIP
+templates/                 # scaffolded into target repos
+  githooks/                # pre-commit (doc-sync gate) + pre-push (preflight)
+  ci/                      # agent-docs workflow
+  vault/                   # the docs/brain skeleton — WIP
 brain.config.example.toml  # documented config schema
 PLAN.md                    # extraction roadmap + port status
 ```

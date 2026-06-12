@@ -1,0 +1,23 @@
+# hipocampo — agent-docs CI. Runs the same preflight as the pre-push hook, so
+# documentation/vault drift can't merge. Copy to .github/workflows/ in the
+# target repo. Assumes the hipocampo package is importable (vendored at the repo
+# root or pip-installed).
+name: agent-docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # doc-sync needs the base ref to compute the diff range
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Preflight (all configured validators)
+        run: python3 -m hipocampo.preflight

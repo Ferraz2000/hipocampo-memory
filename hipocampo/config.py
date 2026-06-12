@@ -24,6 +24,7 @@ DEFAULTS = {
     "vault_root": "docs/brain",
     "language": "en",
     "base_branch": "main",
+    "stale_days": 365,
     "dirs": {
         "knowledge": "knowledge",
         "inbox": "knowledge/_inbox",
@@ -50,8 +51,12 @@ DEFAULTS = {
         "decided", "decision is", "from now on", "always", "rule of thumb",
         "lesson learned", "trade-off", "anti-pattern", "canonical",
     ],
-    "validators": [],
+    "required_docs": [],
+    "validators": ["doc_links", "feature_doc_sync", "vault_sync"],
     "doc_sync": [],
+    # A changed file matching any of these globs (e.g. a Doc Impact Report)
+    # satisfies every doc_sync rule for that commit.
+    "doc_sync_escape_globs": ["**/doc-impact-reports/**/*.md"],
 }
 
 
@@ -102,6 +107,10 @@ class Config:
     @property
     def base_branch(self) -> str:
         return self._d["base_branch"]
+
+    @property
+    def stale_days(self) -> int:
+        return int(self._d["stale_days"])
 
     # -- paths ------------------------------------------------------------
     @property
@@ -190,8 +199,16 @@ class Config:
         return list(self._d["validators"])
 
     @property
+    def required_docs(self) -> list:
+        return list(self._d["required_docs"])
+
+    @property
     def doc_sync(self) -> list:
         return list(self._d["doc_sync"])
+
+    @property
+    def doc_sync_escape_globs(self) -> list:
+        return list(self._d["doc_sync_escape_globs"])
 
     def as_dict(self) -> dict:
         """The fully-merged config as a plain dict (defaults + file overrides)."""

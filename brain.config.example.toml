@@ -67,9 +67,16 @@ capture_triggers = [
   "lesson learned", "trade-off", "anti-pattern", "canonical",
 ]
 
+# Required docs (routing contract): these must exist, or doc_links fails.
+required_docs = []
+
 # Validators run by preflight, in order. Each entry is a module under
-# hipocampo/validators/ (without the .py). Empty until Phase 3 lands them.
-validators = []
+# hipocampo/validators/.
+validators = ["doc_links", "feature_doc_sync", "vault_sync"]
+
+# A changed file matching any of these globs (e.g. a Doc Impact Report) satisfies
+# every doc_sync rule for that commit.
+doc_sync_escape_globs = ["**/doc-impact-reports/**/*.md"]
 
 # Doc-sync rules (Phase 3): when a commit stages a file matching `paths`, it must
 # also stage at least one doc matching `docs` in the same commit, or the commit

@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# hipocampo pre-push — run every configured validator (mirrors CI).
+# If it passes, the push is safe. Requires the hipocampo package importable.
+python3 -m hipocampo.preflight || exit 1

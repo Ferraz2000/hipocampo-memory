@@ -45,7 +45,7 @@ Hybrid, one git repo as source:
 |------|-------------|--------|
 | 1 | Foundation: repo skeleton, config loader, first working slice (inbox_decay) + tests | ✅ done |
 | 2 | Retrieval layer: `search` (pure BM25) + `index` (FTS5 + RRF graph fusion), config-driven, with tests | ✅ done |
-| 3 | Port `vault_tools` core (Insight model, status/area vocab, DQL→markdown views) + validators + `preflight` (doc-links, feature-doc-sync via config `doc_sync`, vault-sync); git hooks + CI template | ⬜ pending |
+| 3 | Governance: `vault.py` page model + validators (`doc_links`, `feature_doc_sync` via config `doc_sync`, `vault_sync`) + config-driven `preflight` + git-hook/CI templates | ✅ done (DQL→markdown views deferred to optional 5b) |
 | 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`registra`, `discovery`, `spec`, `busca`, …) + plugin/marketplace | ⬜ pending |
 | 5 | Vault templates + limiter docs (`capture.md`, `context-budget.md`, `knowledge/index.md`) — English, language-parameterized | ⬜ pending |
 | 6 | Improvements from research (below) as incremental PRs | ⬜ pending |
@@ -58,13 +58,13 @@ Hybrid, one git repo as source:
 | `vault_tools.py` (1078L) | ~70% | `hipocampo/vault.py` (+ `views.py`) | ⬜ (Phase 3) |
 | `search-vault.py` (216L) | ~90% | `hipocampo/search.py` | ✅ |
 | `vault_index.py` (292L) | ~90% | `hipocampo/index.py` | ✅ |
-| `preflight.py` (47L) | ~80% | `hipocampo/preflight.py` | ⬜ |
+| `preflight.py` (47L) | ~80% | `hipocampo/preflight.py` | ✅ |
 | `inbox_decay.py` (100L) | ~85% | `hipocampo/inbox_decay.py` | ✅ |
 | `parse_frontmatter` (from vault_tools) | 100% | `hipocampo/frontmatter.py` | ✅ |
-| `validate-doc-links.py` | ~90% | `hipocampo/validators/doc_links.py` | ⬜ |
-| `validate-feature-doc-sync.py` | ~50% (AREA_RULES → config) | `hipocampo/validators/feature_doc_sync.py` | ⬜ |
-| `validate-vault-sync.py` | ~60% | `hipocampo/validators/vault_sync.py` | ⬜ |
-| `generate-vault-views.py` | ~70% | `hipocampo/views.py` | ⬜ |
+| `validate-doc-links.py` | ~90% | `hipocampo/validators/doc_links.py` | ✅ |
+| `validate-feature-doc-sync.py` | ~50% (AREA_RULES → config `doc_sync`) | `hipocampo/validators/feature_doc_sync.py` | ✅ |
+| `validate-vault-sync.py` (generic subset) | ~60% | `hipocampo/validators/vault_sync.py` | ✅ |
+| `generate-vault-views.py` (DQL→markdown) | ~70% | `hipocampo/views.py` | ⬜ (optional, Phase 5b) |
 
 ## Improvements queued (Phase 6)
 
