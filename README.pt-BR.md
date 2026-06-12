@@ -13,7 +13,7 @@ reaprender as mesmas coisas.
 > move um `_inbox/` de capturas cruas pra uma base `knowledge/` curada e
 > auditável, que vive no seu repo e se compõe ao longo do tempo.
 
-**Status: v0.6.x — usável.** 94 testes, CI verde, validado ponta-a-ponta cinco
+**Status: v0.7.x — usável.** 95 testes, CI verde, validado ponta-a-ponta cinco
 vezes (dogfood mecânico em Go, walkthrough de agente real em Node, auditoria
 adversarial independente, re-auditoria pós-fix com CI real + install real do
 plugin, e um projeto de produção migrado como primeiro consumidor). Ver

@@ -12,7 +12,7 @@ stop forgetting between sessions and stop relearning the same things.
 > write-gated pipeline that moves an `_inbox/` of raw captures into a curated,
 > auditable `knowledge/` base that lives in your repo and compounds over time.
 
-**Status: v0.6.x — usable.** 94 tests, CI green, validated end-to-end five times
+**Status: v0.7.x — usable.** 95 tests, CI green, validated end-to-end five times
 (mechanical dogfood in Go, a live agent walkthrough in Node, an independent
 adversarial audit, a post-fix re-audit with real CI + real plugin install, and a
 production project migrated as the first consumer). See [`PLAN.md`](PLAN.md).
@@ -141,7 +141,7 @@ hipocampo/                 # the python package (zero-dep, stdlib only)
   validators/              # doc_links, feature_doc_sync (doc-sync gate),
                            # vault_sync, views_fresh, router_lint, catalog_sync
   hooks/                   # session_start, capture_sweep, ensure_githooks
-  tests/                   # stdlib unittest (94)
+  tests/                   # stdlib unittest (95)
 plugin/                    # Claude Code plugin (20 skills + hooks.json)
 templates/                 # scaffolded into target repos
   githooks/                # pre-commit (doc-sync gate) + pre-push (preflight)
