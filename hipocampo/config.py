@@ -67,6 +67,8 @@ DEFAULTS = {
     "router": {"file": "AGENTS.md", "max_lines": 120},
     # Directories doc_links never descends into (build/vendor output). ".git",
     # "__pycache__", and the cache dir are always excluded on top of these.
+    # Materialized views: vault-relative dir whose notes feed dataview queries.
+    "views": {"notes_root": "insights", "id_label": "Note"},
     "doc_links_exclude_dirs": ["coverage", "node_modules", "bin", "obj", ".venv",
                                 "dist", "build", "target", "vendor"],
     # Phrases that mean "the user already triggered capture this session" — the
@@ -224,6 +226,14 @@ class Config:
     @property
     def capture_verbs(self) -> list:
         return list(self._d["capture_verbs"])
+
+    @property
+    def views_notes_root(self) -> str:
+        return self._d["views"]["notes_root"]
+
+    @property
+    def views_id_label(self) -> str:
+        return self._d["views"]["id_label"]
 
     @property
     def doc_links_exclude_dirs(self) -> frozenset:

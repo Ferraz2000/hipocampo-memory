@@ -110,3 +110,10 @@ max_lines = 120
 # name  = "persistence"
 # paths = ["src/**/migrations/**", "src/**/repositories/**"]
 # docs  = ["docs/architecture/persistence.md"]
+
+# Materialized views (python -m hipocampo.views): which vault-relative dir feeds
+# the dataview queries, and the header label for the note-link column.
+# Opt-in freshness gate: add "views_fresh" to validators above.
+[views]
+notes_root = "insights"
+id_label = "Note"

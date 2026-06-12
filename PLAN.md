@@ -85,7 +85,7 @@ Hybrid, one git repo as source:
 | `validate-doc-links.py` | ~90% | `hipocampo/validators/doc_links.py` | ✅ |
 | `validate-feature-doc-sync.py` | ~50% (AREA_RULES → config `doc_sync`) | `hipocampo/validators/feature_doc_sync.py` | ✅ |
 | `validate-vault-sync.py` (generic subset) | ~60% | `hipocampo/validators/vault_sync.py` | ✅ |
-| `generate-vault-views.py` (DQL→markdown) | ~70% | `hipocampo/views.py` | ⬜ (optional, Phase 5b) |
+| `generate-vault-views.py` (DQL→markdown) | ~70% | `hipocampo/views.py` | ✅ (v0.4.0; 9/9 table parity vs origin `_generated/`) |
 
 ## Improvements (Phase 6) — some already landed during Phases 1–5
 
@@ -102,4 +102,4 @@ Hybrid, one git repo as source:
 - ✅ #6 `/archive-closed` skill — semantic compaction of terminal insights into an archive index.
 - ✅ #12 recitation guidance folded into `brain-router-init` (re-state the todo at phase boundaries).
 - ⬜ #7 optional local semantic search (FastEmbed + disposable SQLite) — **deferred by design**: breaks the zero-dependency promise; ship as an opt-in add-on later.
-- ⬜ optional Phase 5b: `views.py` (DQL→markdown materialized views) for Obsidian dashboards.
+- ✅ Phase 5b: `views.py` (DQL→markdown materialized views) + opt-in `views_fresh` validator (v0.4.0).
