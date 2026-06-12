@@ -73,6 +73,8 @@ triggers, language. Scripts read this config; nothing is hardcoded. See
 hipocampo/                 # the python package (zero-dep, stdlib only)
   config.py                # loads brain.config.toml + defaults
   frontmatter.py           # YAML-ish frontmatter parser
+  search.py                # pure-BM25 keyword search over the vault
+  index.py                 # optional SQLite FTS5 index + RRF graph fusion
   inbox_decay.py           # expire stale capture-sweeps
   tests/                   # stdlib unittest
 plugin/                    # Claude Code plugin (skills, hooks) — WIP

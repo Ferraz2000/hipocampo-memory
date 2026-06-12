@@ -41,6 +41,11 @@ DEFAULTS = {
     "inactive_statuses": ["rejected", "closed", "discarded", "superseded", "implemented"],
     "area_aliases": {},
     "inbox": {"decay_days": 30, "sweep_type": "capture-sweep"},
+    "search": {
+        "dirs": ["knowledge", "insights", "specs", "raw/sources"],
+        # Terminal/dead-history statuses hidden from default search (--all shows them).
+        "hidden_statuses": ["closed", "implemented", "rejected", "superseded", "deferred"],
+    },
     "capture_triggers": [
         "decided", "decision is", "from now on", "always", "rule of thumb",
         "lesson learned", "trade-off", "anti-pattern", "canonical",
@@ -160,6 +165,20 @@ class Config:
     @property
     def inbox_sweep_type(self) -> str:
         return self._d["inbox"]["sweep_type"]
+
+    # -- search -----------------------------------------------------------
+    @property
+    def search_dirs(self) -> list:
+        return list(self._d["search"]["dirs"])
+
+    @property
+    def search_hidden_statuses(self) -> frozenset:
+        return frozenset(self._d["search"]["hidden_statuses"])
+
+    @property
+    def vault_rel(self) -> str:
+        """vault_root as a posix path relative to the repo root (for index prefixes)."""
+        return self.vault_root.relative_to(self.repo_root).as_posix()
 
     # -- workflow ---------------------------------------------------------
     @property

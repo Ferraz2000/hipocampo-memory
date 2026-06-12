@@ -54,6 +54,12 @@ inactive_statuses = ["rejected", "closed", "discarded", "superseded", "implement
 decay_days = 30
 sweep_type = "capture-sweep"
 
+# Search (BM25, and the optional FTS5 index): which vault subdirs to scan, and
+# which terminal statuses to hide from default results (--all overrides).
+[search]
+dirs = ["knowledge", "insights", "specs", "raw/sources"]
+hidden_statuses = ["closed", "implemented", "rejected", "superseded", "deferred"]
+
 # Phrases that should trigger a proactive "capture this?" offer in chat. The
 # write-gate still applies — the agent offers, the human approves.
 capture_triggers = [

@@ -19,6 +19,16 @@ roadmap.
 - **Zero runtime deps**: stdlib-only Python so it runs in any container/CI.
 - **Config-driven**: all project-specifics live in `brain.config.toml`.
 
+## Decisions (locked)
+
+- **Name** `hipocampo`, **public**, **MIT**.
+- **Config** is `brain.config.toml` (TOML via stdlib `tomllib`) — chosen over YAML
+  to keep the zero-dependency promise (no PyYAML).
+- **Vault default** `docs/brain/` (neutral, configurable via `vault_root`).
+- **Bilingual templates: English + pt-BR.** Kit source/docs are English for reach;
+  scaffolded vault content ships per-locale under `templates/vault/{en,pt-BR}/`,
+  selected by the `language` key. Script logic is language-agnostic.
+
 ## Distribution (decided)
 
 Hybrid, one git repo as source:
@@ -33,9 +43,9 @@ Hybrid, one git repo as source:
 
 | Phase | Deliverable | Status |
 |------|-------------|--------|
-| 1 | Foundation: repo skeleton, config loader, first working slice (inbox_decay) + tests | 🟡 in progress |
-| 2 | Port core: `vault_tools` (frontmatter/Insight/DQL/views), `search` (BM25/RRF), `index` (FTS5) — config-driven | ⬜ pending |
-| 3 | Port validators + `preflight` (doc-links, feature-doc-sync via config `doc_sync`, vault-sync); git hooks + CI template | ⬜ pending |
+| 1 | Foundation: repo skeleton, config loader, first working slice (inbox_decay) + tests | ✅ done |
+| 2 | Retrieval layer: `search` (pure BM25) + `index` (FTS5 + RRF graph fusion), config-driven, with tests | ✅ done |
+| 3 | Port `vault_tools` core (Insight model, status/area vocab, DQL→markdown views) + validators + `preflight` (doc-links, feature-doc-sync via config `doc_sync`, vault-sync); git hooks + CI template | ⬜ pending |
 | 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`registra`, `discovery`, `spec`, `busca`, …) + plugin/marketplace | ⬜ pending |
 | 5 | Vault templates + limiter docs (`capture.md`, `context-budget.md`, `knowledge/index.md`) — English, language-parameterized | ⬜ pending |
 | 6 | Improvements from research (below) as incremental PRs | ⬜ pending |
@@ -45,9 +55,9 @@ Hybrid, one git repo as source:
 
 | Origin script | Generic % | Target | Status |
 |---------------|-----------|--------|--------|
-| `vault_tools.py` (1078L) | ~70% | `hipocampo/vault_tools.py` | ⬜ |
-| `search-vault.py` (216L) | ~90% | `hipocampo/search.py` | ⬜ |
-| `vault_index.py` (292L) | ~90% | `hipocampo/index.py` | ⬜ |
+| `vault_tools.py` (1078L) | ~70% | `hipocampo/vault.py` (+ `views.py`) | ⬜ (Phase 3) |
+| `search-vault.py` (216L) | ~90% | `hipocampo/search.py` | ✅ |
+| `vault_index.py` (292L) | ~90% | `hipocampo/index.py` | ✅ |
 | `preflight.py` (47L) | ~80% | `hipocampo/preflight.py` | ⬜ |
 | `inbox_decay.py` (100L) | ~85% | `hipocampo/inbox_decay.py` | ✅ |
 | `parse_frontmatter` (from vault_tools) | 100% | `hipocampo/frontmatter.py` | ✅ |
