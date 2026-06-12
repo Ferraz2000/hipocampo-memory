@@ -6,6 +6,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "sh -c \"exec $(command -v python3 || command -v python) -m hipocampo.hooks.ensure_githooks\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "sh -c \"exec $(command -v python3 || command -v python) -m hipocampo.hooks.session_start\"",
             "timeout": 10
           }

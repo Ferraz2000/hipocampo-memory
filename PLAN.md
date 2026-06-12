@@ -72,6 +72,17 @@ Hybrid, one git repo as source:
   doc_links excludes, hooks.json interpreter fallback, search no longer returns the
   index hub, CI base-ref mapping.
 
+## Phase 8 — consumer-feedback ports (v0.5.0)
+
+- `normalize` — vocabulary FIXER (vault_sync flags; this repairs): grade synonyms
+  (PT/EN) -> low/medium/high + `[area_aliases]` -> canonical; spec untouched.
+- `canary` — adversarial self-test of the gates against the consumer's REAL
+  brain.config.toml (7 scenarios, temp fixtures, real tree untouched). Proven
+  7/7 against the origin project's config.
+- `hooks/ensure_githooks` — SessionStart hook setting `core.hooksPath .githooks`
+  (idempotent; without it the doc-sync gate silently never runs in fresh/web
+  containers). Wired first in plugin hooks.json.
+
 ## Script port status (origin → `hipocampo/`)
 
 | Origin script | Generic % | Target | Status |
