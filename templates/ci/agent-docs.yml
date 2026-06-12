@@ -6,7 +6,7 @@ name: agent-docs
 
 on:
   push:
-    branches: [main]
+    branches: [main]   # adjust to your base branch (brain-scripts-init: match base_branch)
   pull_request:
 
 jobs:

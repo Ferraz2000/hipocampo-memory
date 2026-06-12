@@ -28,7 +28,9 @@ installed (hooks/CI need the package importable at the repo root).
    (`pre-commit`, `pre-push`) into `.githooks/`, make them executable, and set
    `git config core.hooksPath .githooks`.
 3. **Install CI.** Copy `${CLAUDE_PLUGIN_ROOT}/templates/ci/agent-docs.yml` to
-   `.github/workflows/agent-docs.yml`.
+   `.github/workflows/agent-docs.yml`, and edit its `branches: [main]` to match
+   the repo's actual base branch (`base_branch` in `brain.config.toml`) —
+   otherwise push-mode CI never triggers.
 4. **Sanity check.** Run `python3 -m hipocampo.preflight` and report the result. A
    repo with no `[[doc_sync]]` rules yet passes cleanly.
 5. **Native auto-memory policy.** Claude Code's auto-memory writes outside git
