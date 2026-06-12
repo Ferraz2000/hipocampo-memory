@@ -31,23 +31,26 @@ def broken_doc_links(repo_root):
             if not fname.endswith(".md"):
                 continue
             full = os.path.join(dirpath, fname)
-            in_fence = False
             with open(full, "r", encoding="utf-8", errors="replace") as fh:
-                for line in fh:
-                    if line.lstrip().startswith("```"):
-                        in_fence = not in_fence
+                text = fh.read()
+            # Strip HTML comments so commented-out example links aren't validated.
+            text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+            in_fence = False
+            for line in text.splitlines():
+                if line.lstrip().startswith("```"):
+                    in_fence = not in_fence
+                    continue
+                if in_fence:
+                    continue
+                for m in _LINK_RE.finditer(line):
+                    target = m.group(1).strip()
+                    if not target or target.startswith(("http://", "https://", "mailto:", "#")):
                         continue
-                    if in_fence:
+                    path_only = target.split("#", 1)[0]
+                    if not path_only:
                         continue
-                    for m in _LINK_RE.finditer(line):
-                        target = m.group(1).strip()
-                        if not target or target.startswith(("http://", "https://", "mailto:", "#")):
-                            continue
-                        path_only = target.split("#", 1)[0]
-                        if not path_only:
-                            continue
-                        if not os.path.exists(os.path.join(dirpath, path_only)):
-                            issues.append((os.path.relpath(full, repo_root), target))
+                    if not os.path.exists(os.path.join(dirpath, path_only)):
+                        issues.append((os.path.relpath(full, repo_root), target))
     return issues
 
 
