@@ -56,6 +56,14 @@ Hybrid, one git repo as source:
 - **Go repo (mechanical, me):** 8/8 — scaffold, doc-sync gate, search, capture,
   hooks, router-lint. EXECUTED.
 - **Node repo (live agent-walkthrough of corrected skills):** all green. EXECUTED.
+- **Round 4 (v0.2.4, executed live):** brain-update 3-way (17 auto-updated, 1
+  local-mod flagged), brain-router-init full (lint-clean router + CLAUDE.md +
+  USER.md seed), discovery (insight filed, vault green), pt-BR scaffold
+  (vault_sync green), FTS5-absent fallback (mocked, unit), **CI in a real GitHub
+  consumer repo** — defense-in-depth proven: pre-commit blocks → --no-verify →
+  pre-push blocks → --no-verify → Actions run FAILS on the missing doc
+  (GITHUB_EVENT_BEFORE mapping works). **Real `claude plugin install`** caught
+  `author` needing to be an object (fixed) and now installs cleanly.
 - **Independent audit (separate model, v0.2.1):** executed every path; confirmed
   zero-dep, config-driven, doc-sync gate, search fallback, hooks. Found 2 major +
   6 minor issues → all addressed in **v0.2.3**: `.gitignore` scaffolding (cache no
