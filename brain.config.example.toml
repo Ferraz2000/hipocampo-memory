@@ -117,3 +117,12 @@ max_lines = 120
 [views]
 notes_root = "insights"
 id_label = "Note"
+
+# Curated catalogs (opt-in: add "catalog_sync" to validators). Skills bundles
+# must match the catalog doc; required instruction files (subtree AGENTS.md
+# contract) must exist and stay concise (router file's cap is router_lint's job).
+[catalog]
+skills_dirs = []
+catalog_doc = ""
+required_files = []
+required_files_max_lines = 80

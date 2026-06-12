@@ -69,6 +69,10 @@ DEFAULTS = {
     # "__pycache__", and the cache dir are always excluded on top of these.
     # Materialized views: vault-relative dir whose notes feed dataview queries.
     "views": {"notes_root": "insights", "id_label": "Note"},
+    # catalog_sync (opt-in validator): skills bundles <-> catalog doc + curated
+    # required instruction files (subtree AGENTS.md contract).
+    "catalog": {"skills_dirs": [], "catalog_doc": "", "required_files": [],
+                "required_files_max_lines": 80},
     "doc_links_exclude_dirs": ["coverage", "node_modules", "bin", "obj", ".venv",
                                 "dist", "build", "target", "vendor"],
     # Phrases that mean "the user already triggered capture this session" — the
@@ -234,6 +238,22 @@ class Config:
     @property
     def views_id_label(self) -> str:
         return self._d["views"]["id_label"]
+
+    @property
+    def catalog_skills_dirs(self) -> list:
+        return list(self._d["catalog"]["skills_dirs"])
+
+    @property
+    def catalog_doc(self) -> str:
+        return self._d["catalog"]["catalog_doc"]
+
+    @property
+    def catalog_required_files(self) -> list:
+        return list(self._d["catalog"]["required_files"])
+
+    @property
+    def catalog_required_files_max_lines(self) -> int:
+        return int(self._d["catalog"]["required_files_max_lines"])
 
     @property
     def doc_links_exclude_dirs(self) -> frozenset:
