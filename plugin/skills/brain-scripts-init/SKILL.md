@@ -21,7 +21,12 @@ installed (hooks/CI need the package importable at the repo root).
    `.github/workflows/agent-docs.yml`.
 4. **Sanity check.** Run `python3 -m hipocampo.preflight` and report the result. A
    repo with no `[[doc_sync]]` rules yet passes cleanly.
-5. **Report** what was vendored + how to add the first doc-sync rule (point to the
+5. **Native auto-memory policy.** Claude Code's auto-memory writes outside git
+   without a write-gate, competing with the vault. Offer to either disable it
+   (`autoMemoryEnabled: false` in `.claude/settings.json`) or point
+   `autoMemoryDirectory` at the vault inbox so the capture-sweep promotes it
+   through the write-gate. Let the user choose; don't change settings silently.
+6. **Report** what was vendored + how to add the first doc-sync rule (point to the
    `[[doc_sync]]` block in `brain.config.toml`).
 
 ## Rules

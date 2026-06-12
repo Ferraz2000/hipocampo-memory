@@ -83,6 +83,12 @@ validators = ["doc_links", "feature_doc_sync", "vault_sync"]
 # every doc_sync rule for that commit.
 doc_sync_escape_globs = ["**/doc-impact-reports/**/*.md"]
 
+# Router lint (opt-in: add "router_lint" to validators above). Keeps AGENTS.md
+# lean — long, vague instruction files measurably tax agent reasoning.
+[router]
+file = "AGENTS.md"
+max_lines = 120
+
 # Doc-sync rules (Phase 3): when a commit stages a file matching `paths`, it must
 # also stage at least one doc matching `docs` in the same commit, or the commit
 # is blocked. This is the "behavior change must update its doc" gate.

@@ -30,7 +30,11 @@ measurably tax reasoning, so keep it concrete (commands, paths) and brief.
 5. **Seed `.claude/rules/USER.md`** (persona/preferences, the 4th memory layer) if
    absent — a short template with empty Communication / Pet-peeves / Conventions
    sections. Committed + auto-loaded every session.
-6. **Cross-agent (optional):** offer to mirror skills into `.agents/skills` (Codex)
+6. **Path-scoped rules (optional):** for rules that only apply to one area, write
+   them as `.claude/rules/<name>.md` with a `paths:` glob frontmatter instead of
+   bloating `AGENTS.md` — they load only when the agent touches matching files
+   (index-first by path, native to Claude Code).
+7. **Cross-agent (optional):** offer to mirror skills into `.agents/skills` (Codex)
    and set Gemini's `contextFileName` to `AGENTS.md`.
 
 ## Rules

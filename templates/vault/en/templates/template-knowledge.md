@@ -9,6 +9,7 @@ sources:
   - raw/sources/<YYYY-MM-DD>-<slug>.md
 created: {{DATE}}
 updated: {{DATE}}
+valid_until: ""        # optional ISO date; past it, vault_sync warns to review
 superseded_by: ""
 tags: [knowledge]
 ---

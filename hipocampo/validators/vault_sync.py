@@ -115,6 +115,14 @@ def check_provenance(cfg):
                 issues.append(("WARN", f"[Staleness] knowledge/{page.rel}: updated {age} days ago (> {cfg.stale_days}) — review"))
         except (ValueError, TypeError):
             pass
+        # Temporal validity: a page past its declared valid_until is expired.
+        valid_until = (page.fields.get("valid_until") or "").strip()
+        if valid_until:
+            try:
+                if date.fromisoformat(valid_until) < today:
+                    issues.append(("WARN", f"[Expired] knowledge/{page.rel}: valid_until {valid_until} has passed — review or supersede"))
+            except (ValueError, TypeError):
+                pass
 
     sroot = cfg.raw_sources_dir
     raw_rel = cfg.raw_sources_dir.relative_to(cfg.vault_root).as_posix()

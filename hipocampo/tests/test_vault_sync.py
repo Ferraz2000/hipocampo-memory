@@ -74,6 +74,15 @@ class VaultSyncTest(unittest.TestCase):
             self.assertEqual(vault_sync.check_status_area(cfg), [])
 
     # -- provenance -------------------------------------------------------
+    def test_expired_valid_until_warns(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, v = self._vault(tmp)
+            (v / "knowledge/meta").mkdir()
+            (v / "knowledge/meta/p.md").write_text(
+                "---\ntype: knowledge\nvalid_until: 2000-01-01\n---\n", encoding="utf-8")
+            issues = vault_sync.check_provenance(cfg)
+            self.assertTrue(any(l == "WARN" and "Expired" in m for l, m in issues))
+
     def test_missing_source_fails_and_orphan_warns(self):
         with tempfile.TemporaryDirectory() as tmp:
             cfg, v = self._vault(tmp)

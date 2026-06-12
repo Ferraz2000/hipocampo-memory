@@ -32,4 +32,6 @@ root (or it can be `pip install`ed). Both hooks are config-driven and never bloc
   (generate the `AGENTS.md` router for the repo's language), `brain-scripts-init`
   (vendor scripts + git hooks + CI), `brain-update` (update vendored files).
 - **Workflow:** `registra` (capture, write-gated), `busca` (search), `discovery`
-  (broad vault read), `spec` (mini design doc).
+  (broad vault read), `spec` (mini design doc), `challenge` (confront a decision
+  with the vault's past reversals), `discover-standards` (mine code → candidate
+  convention insights).

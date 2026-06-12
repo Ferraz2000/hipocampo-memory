@@ -58,6 +58,9 @@ DEFAULTS = {
     "capture_internal_hosts": ["localhost", "127.0.0.1"],
     "required_docs": [],
     "validators": ["doc_links", "feature_doc_sync", "vault_sync"],
+    # router_lint is opt-in (not in the default validators): add "router_lint" to
+    # validators to enforce a lean AGENTS.md. Lean routers measurably help agents.
+    "router": {"file": "AGENTS.md", "max_lines": 120},
     "doc_sync": [],
     # A changed file matching any of these globs (e.g. a Doc Impact Report)
     # satisfies every doc_sync rule for that commit.
@@ -222,6 +225,14 @@ class Config:
     @property
     def doc_sync_escape_globs(self) -> list:
         return list(self._d["doc_sync_escape_globs"])
+
+    @property
+    def router_file(self) -> str:
+        return self._d["router"]["file"]
+
+    @property
+    def router_max_lines(self) -> int:
+        return int(self._d["router"]["max_lines"])
 
     def as_dict(self) -> dict:
         """The fully-merged config as a plain dict (defaults + file overrides)."""

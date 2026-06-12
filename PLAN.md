@@ -71,14 +71,14 @@ Hybrid, one git repo as source:
 - ✅ #3 dependency graph seeds (`depends_on:`/`blocks:` in the insight template).
 - ✅ #4 append-only `log.md` in the vault templates.
 - ✅ #6-ish stale-sweep decay + Stop-hook consolidation (sleep-time pattern).
-- ⬜ #1 policy for native Claude Code auto-memory (redirect into repo inbox vs disable).
-- ⬜ #2 conditional rules via `.claude/rules/` `paths:` instead of bloating `AGENTS.md`.
+- ✅ #1 native auto-memory policy (guidance in `brain-scripts-init`: disable or redirect to inbox).
+- ✅ #2 conditional rules via `.claude/rules/` `paths:` (guidance in `brain-router-init`).
+- ✅ #8 `/challenge` skill — confront a decision with the vault's past reversals/failures.
+- ✅ #9 `/discover-standards` skill — mine the code, propose conventions as candidate insights.
+- ✅ #10 temporal validity (`valid_until` in the knowledge template + vault_sync warning).
+- ✅ #11 router-lint validator (opt-in `router_lint`: lean AGENTS.md size cap).
 - ⬜ #5 lint/gardener pass (contradictions, stale, orphans; ingest updates old pages).
 - ⬜ #6 semantic compaction of closed insights into an archive index (beads).
 - ⬜ #7 optional local semantic search (FastEmbed + disposable SQLite) alongside BM25.
-- ⬜ #8 `/challenge` — confront a decision with the vault's past reversals/failures.
-- ⬜ #9 `/discover-standards` — mine the code, propose conventions as candidate insights.
-- ⬜ #10 temporal validity in `knowledge/` (`valid_until`/`superseded_by`) + validator.
-- ⬜ #11 context-budget audit via `InstructionsLoaded` hook + router size/vagueness validator.
 - ⬜ #12 recitation in long flows; strict progressive disclosure (bootstrap <2k tokens).
 - ⬜ optional Phase 5b: `views.py` (DQL→markdown materialized views) for Obsidian dashboards.
