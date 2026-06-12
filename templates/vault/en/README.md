@@ -11,7 +11,7 @@ updated: {{DATE}}
 # Vault — overview & conventions
 
 This is the project's second brain: durable, git-versioned, human-gated memory
-for coding agents. Scaffolded by [hipocampo](https://github.com/Ferraz2000/HipoCampo).
+for coding agents. Scaffolded by [hipocampo](https://github.com/Ferraz2000/hipocampo).
 
 > **Agents:** do not bulk-read this vault. Follow [context-budget](context-budget.md)
 > (index-first reads, never bulk-read) and [capture](capture.md) (how chat becomes
