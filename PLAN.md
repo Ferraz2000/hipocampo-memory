@@ -46,7 +46,7 @@ Hybrid, one git repo as source:
 | 1 | Foundation: repo skeleton, config loader, first working slice (inbox_decay) + tests | ✅ done |
 | 2 | Retrieval layer: `search` (pure BM25) + `index` (FTS5 + RRF graph fusion), config-driven, with tests | ✅ done |
 | 3 | Governance: `vault.py` page model + validators (`doc_links`, `feature_doc_sync` via config `doc_sync`, `vault_sync`) + config-driven `preflight` + git-hook/CI templates | ✅ done (DQL→markdown views deferred to optional 5b) |
-| 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`registra`, `discovery`, `spec`, `busca`, …) + plugin/marketplace | ⬜ pending |
+| 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`registra`, `discovery`, `spec`, `busca`) + hooks (SessionStart briefing, Stop capture-sweep) + plugin/marketplace | ✅ done |
 | 5 | Vault templates + limiter docs (`capture.md`, `context-budget.md`, `README.md`, `knowledge/index.md`, `log.md`, note templates) — **bilingual EN + pt-BR** | ✅ done |
 | 6 | Improvements from research (below) as incremental PRs | ⬜ pending |
 | 7 | Dogfood on a fresh non-private project; then migrate the origin project to consume the kit | ⬜ pending |
@@ -66,17 +66,19 @@ Hybrid, one git repo as source:
 | `validate-vault-sync.py` (generic subset) | ~60% | `hipocampo/validators/vault_sync.py` | ✅ |
 | `generate-vault-views.py` (DQL→markdown) | ~70% | `hipocampo/views.py` | ⬜ (optional, Phase 5b) |
 
-## Improvements queued (Phase 6)
+## Improvements (Phase 6) — some already landed during Phases 1–5
 
-1. Policy for native Claude Code auto-memory (redirect into repo inbox vs disable).
-2. Conditional rules via `.claude/rules/` `paths:` instead of bloating `AGENTS.md`.
-3. Dependency graph on the work layer (`depends_on:`/`blocks:`) — beads-lite.
-4. Append-only `log.md` in the vault (Karpathy).
-5. Lint/gardener pass (contradictions, stale, orphans; ingest updates old pages).
-6. Semantic compaction of closed insights into an archive index (beads).
-7. Optional local semantic search (FastEmbed + disposable SQLite) alongside BM25.
-8. `/challenge` — confront a decision with the vault's past reversals/failures.
-9. `/discover-standards` — mine the code, propose conventions as candidate insights.
-10. Temporal validity in `knowledge/` (`valid_until`/`superseded_by`) + staleness validator.
-11. Context-budget audit via `InstructionsLoaded` hook + router size/vagueness validator.
-12. Recitation in long flows; strict progressive disclosure (bootstrap <2k tokens).
+- ✅ #3 dependency graph seeds (`depends_on:`/`blocks:` in the insight template).
+- ✅ #4 append-only `log.md` in the vault templates.
+- ✅ #6-ish stale-sweep decay + Stop-hook consolidation (sleep-time pattern).
+- ⬜ #1 policy for native Claude Code auto-memory (redirect into repo inbox vs disable).
+- ⬜ #2 conditional rules via `.claude/rules/` `paths:` instead of bloating `AGENTS.md`.
+- ⬜ #5 lint/gardener pass (contradictions, stale, orphans; ingest updates old pages).
+- ⬜ #6 semantic compaction of closed insights into an archive index (beads).
+- ⬜ #7 optional local semantic search (FastEmbed + disposable SQLite) alongside BM25.
+- ⬜ #8 `/challenge` — confront a decision with the vault's past reversals/failures.
+- ⬜ #9 `/discover-standards` — mine the code, propose conventions as candidate insights.
+- ⬜ #10 temporal validity in `knowledge/` (`valid_until`/`superseded_by`) + validator.
+- ⬜ #11 context-budget audit via `InstructionsLoaded` hook + router size/vagueness validator.
+- ⬜ #12 recitation in long flows; strict progressive disclosure (bootstrap <2k tokens).
+- ⬜ optional Phase 5b: `views.py` (DQL→markdown materialized views) for Obsidian dashboards.

@@ -10,5 +10,7 @@
   "keywords": [
     "memory", "agents", "second-brain", "obsidian", "knowledge",
     "claude-code", "codex", "gemini", "doc-sync"
-  ]
+  ],
+  "skills": "./plugin/skills",
+  "hooks": "./plugin/hooks/hooks.json"
 }
