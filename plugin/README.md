@@ -31,7 +31,7 @@ root (or it can be `pip install`ed). Both hooks are config-driven and never bloc
 - **Generators:** `brain-init` (scaffold the vault), `brain-router-init`
   (generate the `AGENTS.md` router for the repo's language), `brain-scripts-init`
   (vendor scripts + git hooks + CI), `brain-update` (update vendored files).
-- **Workflow:** `registra` (capture, write-gated), `busca` (search), `discovery`
+- **Workflow:** `capture` (write-gated), `search`, `discovery`
   (broad vault read), `spec` (mini design doc), `challenge` (confront a decision
   with the vault's past reversals), `discover-standards` (mine code → candidate
   convention insights), `garden` (lint/consolidation), `archive-closed` (compact
@@ -39,4 +39,4 @@ root (or it can be `pip install`ed). Both hooks are config-driven and never bloc
 - **Insight lifecycle:** `from-roadmap` (what next), `promote` (insight → spec/
   ADR/issue), `implement` (build an approved spec), `execute-insight` (one insight,
   two commits), `weekly` (triage cycle), `postmortem` (lessons from a branch),
-  `audita` (fact-check a page vs its sources), `low-token` (lean mode).
+  `audit` (fact-check a page vs its sources), `low-token` (lean mode).

@@ -91,7 +91,7 @@ discovery, sem leitura do vault.
 ## A captura é a única escrita automática sancionada
 
 A única escrita **automática** permitida no vault é a **captura** — o protocolo de
-[capture](capture.md), acionado por `/registra` ou uma proposta proativa aceita.
+[capture](capture.md), acionado por `/capture` ou uma proposta proativa aceita.
 É *bounded* e sempre com write-gate humano. Fora da captura, agentes não escrevem
 no vault sem gatilho explícito.
 

@@ -20,7 +20,7 @@ tags: [knowledge, index, navigation]
 > rotineiras seguem skill/doc oficial — o index é entry point, não obrigação
 > universal.
 >
-> Como manter: atualizado pelo `/registra` quando cria/move página. O validator
+> Como manter: atualizado pelo `/capture` quando cria/move página. O validator
 > `vault_sync` enforça consistência (página sem entry → FAIL; entry sem arquivo →
 > FAIL).
 

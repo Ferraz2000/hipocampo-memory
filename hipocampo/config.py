@@ -77,7 +77,7 @@ DEFAULTS = {
                                 "dist", "build", "target", "vendor"],
     # Phrases that mean "the user already triggered capture this session" — the
     # Stop-hook sweep skips when it sees one (agent-agnostic; tune per setup).
-    "capture_verbs": ["/registra", "registra isso", "save to the brain"],
+    "capture_verbs": ["/capture", "registra isso", "save to the brain"],
     "doc_sync": [],
     # A changed file matching any of these globs (e.g. a Doc Impact Report)
     # satisfies every doc_sync rule for that commit.

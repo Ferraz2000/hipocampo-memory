@@ -39,9 +39,8 @@ scaffoldado pros repos-alvo.
 
 Skill = `plugin/skills/<nome>/SKILL.md` com frontmatter `name` + `description` e
 corpo enxuto e operacional (progressive disclosure — aponte pra
-`brain.config.toml`/templates em vez de inlinear tudo). Nomes canônicos em
-**inglês**; aliases pt-BR (`registra`, `busca`, `audita`) são stubs apontando
-pro canônico. O `test_skills.py` valida frontmatter de toda skill; adicione o
+`brain.config.toml`/templates em vez de inlinear tudo). Nomes canônicos em **inglês** —
+padrão único; frases pt-BR vivem nas descriptions como gatilhos. O `test_skills.py` valida frontmatter de toda skill; adicione o
 nome ao set esperado.
 
 ## Adicionando um validator

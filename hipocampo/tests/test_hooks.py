@@ -68,7 +68,7 @@ class ScanTranscriptTest(unittest.TestCase):
 
     def test_registra_invocation_detected(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = _transcript(tmp, [{"role": "user", "content": "/registra this decision"}])
+            path = _transcript(tmp, [{"role": "user", "content": "/capture this decision"}])
             _t, _u, registra = cs.scan_transcript(path, self.cfg)
             self.assertTrue(registra)
 

@@ -12,7 +12,7 @@
       "name": "hipocampo",
       "source": ".",
       "description": "Persistent, git-versioned, human-gated memory for coding agents.",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "category": "productivity",
       "tags": ["memory", "second-brain", "knowledge", "doc-sync"]
     }

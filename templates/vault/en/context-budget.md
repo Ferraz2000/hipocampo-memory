@@ -91,7 +91,7 @@ no vault reads.
 ## Captured writes are the only sanctioned automatic write
 
 The only **automatic** write allowed in the vault is **capture** — the protocol
-in [capture](capture.md), triggered by `/capture` (alias `/registra`) or an accepted proactive
+in [capture](capture.md), triggered by `/capture` or an accepted proactive
 offer. It is bounded and always human-gated. Outside capture, agents don't write
 to the vault without an explicit trigger.
 

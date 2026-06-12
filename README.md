@@ -30,8 +30,8 @@ Then, in your project, you only need **three skills** to start:
 
 ```
 /brain-init             # scaffold the vault + brain.config.toml
-/registra <something>   # capture a decision/lesson as a reviewable note
-/busca <terms>          # search what the brain already knows
+/capture <something>    # capture a decision/lesson as a reviewable note
+/search <terms>         # search what the brain already knows
 ```
 
 Everything else (router generation, vendored gates, the insight lifecycle) is
@@ -61,7 +61,7 @@ $ git add docs/architecture/persistence.md && git commit ...   # passes
 And memory becomes a **reviewable diff**, not a black box:
 
 ```diff
-+ docs/brain/knowledge/architecture/error-style.md   # /registra wrote this
++ docs/brain/knowledge/architecture/error-style.md   # /capture wrote this
 + docs/brain/knowledge/index.md                       # +1 index line
 + docs/brain/log.md                                   # +1 dated log line
 ```
@@ -96,20 +96,20 @@ and a per-commit doc-sync gate.
 
 Reads are **index-first** (Karpathy LLM-wiki): the agent reads a cheap
 `knowledge/index.md`, loads only the relevant pages, never bulk-reads the vault
-(context-rot defense). Writes go through a **human write-gate** (`/registra`):
+(context-rot defense). Writes go through a **human write-gate** (`/capture`):
 the agent proposes, you approve, the agent files and reports.
 
 ## The full toolbox
 
-20 skills (+3 pt-BR aliases), grouped — adopt incrementally:
+20 skills, grouped — adopt incrementally:
 
 - **Setup (once):** `brain-init`, `brain-router-init`, `brain-scripts-init`,
   `brain-update`.
-- **Daily:** `capture` (pt-BR alias `/registra`), `search` (alias `/busca`), `low-token` (lean mode).
+- **Daily:** `capture`, `search`, `low-token` (lean mode).
 - **Thinking:** `challenge` (confront a decision with past reversals),
   `discovery` (bounded broad read), `spec`, `discover-standards`.
 - **Insight lifecycle:** `from-roadmap` → `promote` → `implement` /
-  `execute-insight` → `weekly` / `postmortem` / `audit` (alias `/audita`).
+  `execute-insight` → `weekly` / `postmortem` / `audit`.
 - **Maintenance:** `garden`, `archive-closed` (+ `python -m hipocampo.normalize`
   fixer and the `canary` self-test).
 

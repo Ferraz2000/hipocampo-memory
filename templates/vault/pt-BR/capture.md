@@ -64,7 +64,7 @@ código/teste é contrato (gated), não persona.
 ## Gatilho 1 — verbo explícito
 
 Dispara o fluxo de captura quando o humano diz, no chat:
-- `/registra <o quê>` (slash command), ou
+- `/capture <o quê>` (slash command), ou
 - frases naturais: **"registra isso"**, **"salva no brain"**, "guarda essa decisão".
 
 ## Gatilho 2 — agente proativo (nível: equilibrado)

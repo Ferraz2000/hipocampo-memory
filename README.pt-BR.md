@@ -32,8 +32,8 @@ No seu projeto, você só precisa de **três skills** pra começar:
 
 ```
 /brain-init             # scaffolda o vault + brain.config.toml
-/registra <algo>        # captura uma decisão/lição como nota revisável (alias de /capture)
-/busca <termos>         # busca o que o brain já sabe (alias de /search)
+/capture <algo>         # captura uma decisão/lição como nota revisável
+/search <termos>        # busca o que o brain já sabe
 ```
 
 O resto (geração de router, gates vendorados, ciclo de vida de insights) está lá
@@ -63,7 +63,7 @@ $ git add docs/architecture/persistence.md && git commit ...   # passa
 E a memória vira **diff revisável**, não caixa-preta:
 
 ```diff
-+ docs/brain/knowledge/architecture/error-style.md   # /registra escreveu isto
++ docs/brain/knowledge/architecture/error-style.md   # /capture escreveu isto
 + docs/brain/knowledge/index.md                       # +1 linha no índice
 + docs/brain/log.md                                   # +1 linha datada no log
 ```
@@ -99,20 +99,20 @@ doc-sync por commit.
 Leituras são **index-first** (LLM-wiki do Karpathy): o agente lê um
 `knowledge/index.md` barato, carrega só as páginas relevantes, nunca faz
 bulk-read do vault (defesa contra context rot). Escritas passam pelo
-**write-gate humano** (`/registra`): o agente propõe, você aprova, o agente
+**write-gate humano** (`/capture`): o agente propõe, você aprova, o agente
 grava e reporta.
 
 ## A caixa de ferramentas completa
 
-20 skills (+3 aliases pt-BR), em grupos — adote incrementalmente:
+20 skills, em grupos — adote incrementalmente:
 
 - **Setup (uma vez):** `brain-init`, `brain-router-init`, `brain-scripts-init`,
   `brain-update`.
-- **Diário:** `capture`/`registra`, `search`/`busca`, `low-token` (modo enxuto).
+- **Diário:** `capture`, `search`, `low-token` (modo enxuto).
 - **Pensar:** `challenge` (confronta decisão com reversões passadas),
   `discovery` (leitura ampla delimitada), `spec`, `discover-standards`.
 - **Ciclo de vida de insights:** `from-roadmap` → `promote` → `implement` /
-  `execute-insight` → `weekly` / `postmortem` / `audit`/`audita`.
+  `execute-insight` → `weekly` / `postmortem` / `audit`.
 - **Manutenção:** `garden`, `archive-closed` (+ o fixer
   `python -m hipocampo.normalize` e o self-test `canary`).
 

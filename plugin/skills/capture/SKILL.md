@@ -1,6 +1,6 @@
 ---
 name: capture
-description: Capture the current conversation into durable, git-versioned memory (source / concept / contract / proposal / persona) with a human write-gate. Use when the user says "/capture", "capture this", "save to the brain", or the pt-BR alias "/registra" / "registra isso" / "salva no brain", "remember this decision", or accepts a proactive capture offer.
+description: Capture the current conversation into durable, git-versioned memory (source / concept / contract / proposal / persona) with a human write-gate. Use when the user says "/capture", "capture this", "save to the brain", or pt-BR phrases like "registra isso" / "salva no brain", "remember this decision", or accepts a proactive capture offer.
 ---
 
 # capture — capture chat into durable knowledge

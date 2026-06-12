@@ -39,9 +39,8 @@ scaffolded into target repos.
 
 A skill is `plugin/skills/<name>/SKILL.md` with `name` + `description`
 frontmatter and a lean, operational body (progressive disclosure — point at
-`brain.config.toml`/templates rather than inlining everything). Canonical skill
-names are **English**; pt-BR aliases (`registra`, `busca`, `audita`) are stubs
-pointing at the canonical skill. `test_skills.py`
+`brain.config.toml`/templates rather than inlining everything). Canonical skill names are **English**
+(single standard; pt-BR phrases live in skill descriptions as triggers). `test_skills.py`
 checks every skill has the required frontmatter; add the name to its expected set.
 
 ## Adding a validator
