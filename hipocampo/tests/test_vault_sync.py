@@ -93,6 +93,15 @@ class VaultSyncTest(unittest.TestCase):
             self.assertEqual(len(issues), 2)
             self.assertTrue(all(l == "FAIL" for l, _ in issues))
 
+    def test_implemented_without_implemented_at_warns(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, v = self._vault(tmp)
+            (v / "insights/done.md").write_text(
+                "---\ntype: insight\nstatus: implemented\narea: meta\n---\n",
+                encoding="utf-8")
+            issues = vault_sync.check_status_area(cfg)
+            self.assertTrue(any(l == "WARN" and "implemented_at" in m for l, m in issues))
+
     def test_spec_type_is_skipped(self):
         with tempfile.TemporaryDirectory() as tmp:
             cfg, v = self._vault(tmp)

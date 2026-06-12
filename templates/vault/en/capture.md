@@ -65,7 +65,7 @@ code/tests is a contract (gated), not persona.
 ## Trigger 1 — explicit verb
 
 Fires the capture flow when the human says, in chat:
-- `/registra <what>` (slash command), or
+- `/capture <what>` (slash command; pt-BR alias `/registra`), or
 - natural phrases: **"capture this"**, **"save to the brain"**, "remember this decision".
 
 ## Trigger 2 — proactive agent (level: balanced)

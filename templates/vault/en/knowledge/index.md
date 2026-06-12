@@ -20,7 +20,7 @@ tags: [knowledge, index, navigation]
 > tasks follow the skill/official doc — the index is an entry point, not a
 > universal obligation.
 >
-> How it's kept: updated by `/registra` when a page is created/moved. The
+> How it's kept: updated by `/capture` when a page is created/moved. The
 > `vault_sync` validator enforces consistency (page without entry → FAIL; entry
 > without file → FAIL).
 

@@ -5,7 +5,7 @@ description: Mine the just-finished branch/PR for durable lessons and propose th
 
 # postmortem — lessons from the branch
 
-Complements `registra` (captures from conversation) and `discover-standards`
+Complements `capture` (captures from conversation) and `discover-standards`
 (from code at rest): this captures from **the diff and the journey** — what broke,
 what surprised, what should never happen again.
 

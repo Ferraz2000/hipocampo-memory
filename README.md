@@ -1,5 +1,7 @@
 # hipocampo
 
+🌐 [Português](README.pt-BR.md) · **English**
+
 **Persistent, git-versioned, human-gated memory for coding agents.** A reusable
 kit that scaffolds a knowledge vault + skills + hooks + validation scripts into
 **any project, any language** — so your agents (Claude Code, Codex, Gemini)
@@ -99,15 +101,15 @@ the agent proposes, you approve, the agent files and reports.
 
 ## The full toolbox
 
-20 skills, grouped — adopt incrementally:
+20 skills (+3 pt-BR aliases), grouped — adopt incrementally:
 
 - **Setup (once):** `brain-init`, `brain-router-init`, `brain-scripts-init`,
   `brain-update`.
-- **Daily:** `registra` (capture), `busca` (search), `low-token` (lean mode).
+- **Daily:** `capture` (pt-BR alias `/registra`), `search` (alias `/busca`), `low-token` (lean mode).
 - **Thinking:** `challenge` (confront a decision with past reversals),
   `discovery` (bounded broad read), `spec`, `discover-standards`.
 - **Insight lifecycle:** `from-roadmap` → `promote` → `implement` /
-  `execute-insight` → `weekly` / `postmortem` / `audita`.
+  `execute-insight` → `weekly` / `postmortem` / `audit` (alias `/audita`).
 - **Maintenance:** `garden`, `archive-closed` (+ `python -m hipocampo.normalize`
   fixer and the `canary` self-test).
 

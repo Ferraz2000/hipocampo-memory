@@ -22,7 +22,7 @@ Surface prior art before the project repeats a mistake. Uses the accumulated
    - decisions this would **contradict or supersede** (link them),
    - if nothing relevant: say so plainly — "no prior art found", don't invent.
 5. If the user proceeds anyway and it supersedes an existing decision, offer to
-   capture the change via `registra` (set the old page's `superseded_by`).
+   capture the change via `capture` (set the old page's `superseded_by`).
 
 ## Rules
 

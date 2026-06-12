@@ -1,5 +1,7 @@
 # Contributing to hipocampo
 
+🌐 [Português](CONTRIBUTING.pt-BR.md) · **English**
+
 Thanks for helping. The kit is small and opinionated on purpose — please read the
 non-negotiables before opening a PR.
 
@@ -37,7 +39,9 @@ scaffolded into target repos.
 
 A skill is `plugin/skills/<name>/SKILL.md` with `name` + `description`
 frontmatter and a lean, operational body (progressive disclosure — point at
-`brain.config.toml`/templates rather than inlining everything). `test_skills.py`
+`brain.config.toml`/templates rather than inlining everything). Canonical skill
+names are **English**; pt-BR aliases (`registra`, `busca`, `audita`) are stubs
+pointing at the canonical skill. `test_skills.py`
 checks every skill has the required frontmatter; add the name to its expected set.
 
 ## Adding a validator

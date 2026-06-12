@@ -24,4 +24,4 @@ the sanctioned exception — use it **only when the work itself is reading the v
 
 - New insights are proposals (`status: triage`), scored impact/effort/risk — not
   truth yet. Promote to a spec/ADR/issue when they become a contract.
-- Capturing anything durable still goes through the `registra` write-gate.
+- Capturing anything durable still goes through the `capture` write-gate.

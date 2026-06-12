@@ -5,7 +5,7 @@ description: Mine the existing codebase for de-facto conventions (naming, struct
 
 # discover-standards — mine the code for conventions
 
-Complements `registra` (which captures from conversation) and `postmortem` (which
+Complements `capture` (which captures from conversation) and `postmortem` (which
 captures from a branch): this one captures from the **code itself**. Inspired by
 Agent OS's "Discover".
 
@@ -29,4 +29,4 @@ Agent OS's "Discover".
 
 - Evidence-based: every proposed standard cites real file paths. No invented rules.
 - Bounded reading (context budget). Capturing to the vault still goes through the
-  `registra`/discovery write-gate — propose, the user confirms.
+  `capture`/discovery write-gate — propose, the user confirms.

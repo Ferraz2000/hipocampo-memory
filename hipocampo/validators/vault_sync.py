@@ -86,6 +86,8 @@ def check_status_area(cfg):
         if page.fields.get("type") == "spec":
             continue
         status = (page.fields.get("status") or "").strip()
+        if status == "implemented" and not (page.fields.get("implemented_at") or "").strip():
+            issues.append(("WARN", f"[Closure] insights/{page.rel}: status=implemented without implemented_at — record when/where it landed"))
         if status and status not in statuses:
             issues.append(("FAIL", f"[Status] insights/{page.rel}: status={status!r} not in closed set ({'/'.join(sorted(statuses))})"))
         area = (page.fields.get("area") or "").strip()
