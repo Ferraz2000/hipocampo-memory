@@ -31,9 +31,25 @@ Todos os testes devem passar. Comportamento novo exige teste.
 
 ## Layout
 
-Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Resumo: `hipocampo/` é o
-pacote, `plugin/skills/*/SKILL.md` são as skills, `templates/` é o que vai
-scaffoldado pros repos-alvo.
+Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) pro comportamento. Internals do kit:
+
+```
+hipocampo/                 # the python package (zero-dep, stdlib only)
+  config.py                # loads brain.config.toml + defaults
+  frontmatter.py / vault.py / globs.py
+  search.py / index.py     # BM25 + optional FTS5/RRF
+  views.py                 # dataview DQL -> static markdown mirrors
+  normalize.py / canary.py / inbox_decay.py / preflight.py
+  validators/              # doc_links, feature_doc_sync, vault_sync,
+                           # views_fresh, router_lint, catalog_sync
+  hooks/                   # session_start, capture_sweep, ensure_githooks
+  tests/                   # stdlib unittest
+plugin/                    # Claude Code plugin (20 skills + hooks.json)
+templates/                 # scaffolded into target repos (vault/{en,pt-BR},
+                           # githooks, ci, gitignore)
+brain.config.example.toml  # documented config schema
+```
+
 
 ## Adicionando uma skill
 

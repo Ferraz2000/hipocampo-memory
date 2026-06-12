@@ -3,21 +3,17 @@
 🌐 **Português** · [English](README.md)
 
 **Memória persistente, versionada em git e com write-gate humano para agentes de
-código.** Um kit reutilizável que scaffolda um vault de conhecimento + skills +
-hooks + scripts de validação em **qualquer projeto, qualquer linguagem** — pra
-seus agentes (Claude Code, Codex, Gemini) pararem de esquecer entre sessões e de
-reaprender as mesmas coisas.
+código.** Seus agentes (Claude Code, Codex, Gemini) param de esquecer entre
+sessões e de deixar docs apodrecerem — em qualquer projeto, qualquer linguagem.
 
 > *Hipocampo* é a região do cérebro que consolida memória de curto prazo em
-> longo prazo. É exatamente o que este kit faz: um pipeline com write-gate que
-> move um `_inbox/` de capturas cruas pra uma base `knowledge/` curada e
+> longo prazo. O kit faz o mesmo: capturas cruas caem num `_inbox/`, e um
+> pipeline com write-gate as transforma numa base `knowledge/` curada e
 > auditável, que vive no seu repo e se compõe ao longo do tempo.
 
 **Status: v0.7.x — usável.** 95 testes, CI verde, validado ponta-a-ponta cinco
-vezes (dogfood mecânico em Go, walkthrough de agente real em Node, auditoria
-adversarial independente, re-auditoria pós-fix com CI real + install real do
-plugin, e um projeto de produção migrado como primeiro consumidor). Ver
-[`PLAN.md`](PLAN.md).
+vezes, incluindo um projeto de produção como primeiro consumidor
+([detalhes](PLAN.md)).
 
 ## Quickstart (2 minutos)
 
@@ -28,17 +24,17 @@ plugin, e um projeto de produção migrado como primeiro consumidor). Ver
 npx skills add Ferraz2000/hipocampo
 ```
 
-No seu projeto, você só precisa de **três skills** pra começar:
+Aí diga `/brain-init` no seu projeto. **O agente faz o setup** — ele te faz três
+perguntas (idioma, onde fica o vault, áreas iniciais), gera a config e scaffolda
+o vault. Daí em diante, o dia-a-dia é só conversar:
 
 ```
-/brain-init             # scaffolda o vault + brain.config.toml
-/capture <algo>         # captura uma decisão/lição como nota revisável
-/search <termos>        # busca o que o brain já sabe
+/capture <algo>     # "lembra dessa decisão" → vira nota revisável
+/search <termos>    # "o que a gente sabe sobre X?"
 ```
 
-O resto (geração de router, gates vendorados, ciclo de vida de insights) está lá
-pra quando você quiser — veja [a caixa de ferramentas completa](#a-caixa-de-ferramentas-completa).
-Não precisa aprender tudo antes.
+Só isso pra começar. Todo o resto é opcional e **o agente roda por você** — veja
+[a caixa de ferramentas completa](#a-caixa-de-ferramentas-completa).
 
 ## Como fica (antes / depois)
 
@@ -55,7 +51,6 @@ $ git commit -m "feat: muda modelo de persistência"
 $ git commit -m "feat: muda modelo de persistência"
 feature-doc-sync validation FAILED
   Sensitive area changed without its doc update: persistence
-  Files:  src/app/migrations/0042_split.sql
   Update one of: docs/architecture/persistence.md
 $ git add docs/architecture/persistence.md && git commit ...   # passa
 ```
@@ -65,73 +60,84 @@ E a memória vira **diff revisável**, não caixa-preta:
 ```diff
 + docs/brain/knowledge/architecture/error-style.md   # /capture escreveu isto
 + docs/brain/knowledge/index.md                       # +1 linha no índice
-+ docs/brain/log.md                                   # +1 linha datada no log
 ```
 
-Agente propõe → você aprova → cai no git → o `vault_sync` mantém honesto
-(proveniência, índice, vocabulário). `python -m hipocampo.canary` prova que os
-gates mordem contra a *sua* config (7 cenários adversariais).
+Agente propõe → você aprova → cai no git. Validators mantêm honesto;
+`python -m hipocampo.canary` prova que os gates mordem contra o *seu* setup.
+
+## Como funciona
+
+Um princípio: **o humano cura conversando; o agente faz o bookkeeping.**
+
+| Camada | Onde | É verdade? |
+|------|-------|--------|
+| Regras (como trabalhar aqui) | `AGENTS.md` / `.claude/rules/` | sim |
+| Working memory (em voo) | briefing de sessão derivado de git | não (cockpit) |
+| Conhecimento durável | `knowledge/` + docs oficiais | sim |
+| Propostas ("deveríamos?") | `insights/` (com score) | ainda não |
+| Proveniência | `raw/sources/` (imutável) | lastro |
+
+Leituras são **index-first**: o agente lê um `knowledge/index.md` barato e
+carrega só as páginas relevantes — nunca o vault inteiro (defesa contra context
+rot). Escritas passam pelo **write-gate humano** (`/capture`): o agente propõe,
+você aprova, o agente grava e reporta.
+
+## O que cai no seu repo
+
+`/brain-init` + `/brain-scripts-init` adicionam, e o agente mantém:
+
+```
+brain.config.toml     # todas as settings do projeto (gerado, não escrito à mão)
+docs/brain/           # o vault: knowledge/, insights/, raw/sources/, templates
+hipocampo/            # scripts zero-dependência vendorados (busca, gates, hooks)
+.githooks/            # pre-commit (gate de doc-sync) + pre-push (preflight)
+.github/workflows/    # opcional: os mesmos gates no CI
+```
+
+Markdown puro + Python stdlib. Sem daemon, sem banco, sem pip install — apagou
+as pastas, sumiu.
+
+## A caixa de ferramentas completa
+
+20 skills, em grupos — **você não decora isso; o agente escolhe a partir do que
+você diz.** Adote incrementalmente:
+
+- **Setup (uma vez):** `brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`.
+- **Diário:** `capture`, `search`, `low-token` (modo enxuto).
+- **Pensar:** `challenge` (confronta decisão com reversões passadas), `discovery`, `spec`, `discover-standards`.
+- **Ciclo de vida de insights:** `from-roadmap` → `promote` → `implement` / `execute-insight` → `weekly` / `postmortem` / `audit`.
+- **Manutenção:** `garden`, `archive-closed` (+ o fixer `normalize` e o self-test `canary`).
+
+Mais dois hooks (briefing git no SessionStart; capture-sweep no Stop com
+redaction de segredos) e nove validators config-driven rodados pelo `preflight`.
+
+## Configuração
+
+Tudo que é específico do projeto vive em **`brain.config.toml`** na raiz.
+**Você não escreve isso à mão** — o `/brain-init` gera a partir de três
+respostas, e você evolui pedindo ao agente ("adiciona regra de doc-sync pra
+`src/api/`", "sobe a janela de decay pra 60 dias"). O schema completo, pra
+auditoria ou edição manual: [`brain.config.example.toml`](brain.config.example.toml).
 
 ## Por que isto e não um framework de memória
 
 O estado da arte 2025–2026 convergiu pra **markdown como fonte de verdade + um
 índice derivado opcional** (auto-memory da Anthropic, MemFS do Letta Code,
-OpenClaw/memsearch, basic-memory — independentemente). Memória em DB
-(mem0/Zep/claude-flow) abre mão da auditabilidade por git-diff. A aposta do
-hipocampo é a durável, mais a peça que nenhum framework publicado entrega bem:
-**governança** — write-gate humano, frontmatter-como-verdade e um gate de
+basic-memory — independentemente). Memória em DB abre mão da auditabilidade por
+git-diff. O hipocampo adiciona a peça que nenhum framework publicado entrega
+bem: **governança** — write-gate humano, frontmatter-como-verdade e um gate de
 doc-sync por commit.
 
 > **Times:** o write-gate é imposto por protocolo (agente cooperante + review
 > via git). Pra enforcement duro, coloque o vault atrás de **branch protegida
 > com PR review obrigatório** — ver o [threat model](docs/ARCHITECTURE.md#threat-model-honest-limits).
 
-## Como funciona (as camadas)
-
-| Camada | Onde | O quê | É verdade? |
-|------|-------|------|--------|
-| Procedural | `AGENTS.md` / `CLAUDE.md` / `.claude/rules/` | como o agente trabalha aqui | sim (regras) |
-| Working memory | roadmap / inbox (briefing derivado de git) | o que está em voo | não (cockpit) |
-| Semântica | `knowledge/` + docs oficiais | conceitos & decisões duráveis | sim (durável) |
-| Propostas | `insights/` | candidatos "deveríamos?" com score | ainda não |
-| Proveniência | `raw/sources/` | fontes ingeridas imutáveis | não (lastro) |
-
-Leituras são **index-first** (LLM-wiki do Karpathy): o agente lê um
-`knowledge/index.md` barato, carrega só as páginas relevantes, nunca faz
-bulk-read do vault (defesa contra context rot). Escritas passam pelo
-**write-gate humano** (`/capture`): o agente propõe, você aprova, o agente
-grava e reporta.
-
-## A caixa de ferramentas completa
-
-20 skills, em grupos — adote incrementalmente:
-
-- **Setup (uma vez):** `brain-init`, `brain-router-init`, `brain-scripts-init`,
-  `brain-update`.
-- **Diário:** `capture`, `search`, `low-token` (modo enxuto).
-- **Pensar:** `challenge` (confronta decisão com reversões passadas),
-  `discovery` (leitura ampla delimitada), `spec`, `discover-standards`.
-- **Ciclo de vida de insights:** `from-roadmap` → `promote` → `implement` /
-  `execute-insight` → `weekly` / `postmortem` / `audit`.
-- **Manutenção:** `garden`, `archive-closed` (+ o fixer
-  `python -m hipocampo.normalize` e o self-test `canary`).
-
-Mais dois hooks (briefing git no SessionStart, capture-sweep no Stop com
-redaction de segredos) e nove validators config-driven rodados pelo `preflight`.
-
-## Configuração
-
-Tudo que é específico do projeto vive em **`brain.config.toml`** na raiz —
-localização do vault, vocabulário de áreas/status, regras de doc-sync, janela de
-decay, gatilhos de captura, idioma. Os scripts leem a config; nada é hardcoded.
-Ver [`brain.config.example.toml`](brain.config.example.toml).
-
 ## Docs
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — como funciona (consolidado).
-- [PLAN.md](PLAN.md) — fases, decisões, status do port.
+- [PLAN.md](PLAN.md) — fases, decisões, histórico de validação.
 - [PUBLISHING.md](PUBLISHING.md) — releases + submissão ao marketplace.
-- [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md) — setup + não-negociáveis ([EN](CONTRIBUTING.md)).
+- [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md) — setup, layout interno do kit, não-negociáveis ([EN](CONTRIBUTING.md)).
 
 ## Licença
 
