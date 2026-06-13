@@ -8,10 +8,40 @@ on:
 jobs:
   unittest:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 is the floor (tomllib in stdlib); test the supported range.
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"   # lowest supported (tomllib in stdlib)
+          python-version: ${{ matrix.python-version }}
       - name: Run tests (stdlib unittest, zero deps)
         run: python -m unittest discover -s hipocampo/tests -v
+
+  manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate plugin manifests (JSON parses; version is single-sourced)
+        run: |
+          python - <<'PY'
+          import json
+          pj = json.load(open(".claude-plugin/plugin.json"))
+          mk = json.load(open(".claude-plugin/marketplace.json"))
+          entry = mk["plugins"][0]
+          assert pj.get("name") == "hipocampo", "plugin.json name must be 'hipocampo'"
+          assert "version" in pj, "plugin.json must carry the version"
+          # plugin.json's version wins silently, so a marketplace-entry version would
+          # mask drift — keep it in exactly one place.
+          assert "version" not in entry, \
+              "do not duplicate 'version' in the marketplace entry (plugin.json wins)"
+          assert entry.get("source") == ".", \
+              "same-repo plugin must use the relative source '.'"
+          print("manifests OK — version", pj["version"])
+          PY
