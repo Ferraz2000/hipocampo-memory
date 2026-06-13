@@ -9,7 +9,6 @@ budget. Never blocks; prints the briefing to stdout for Claude Code to add to
 context.
 """
 
-import json
 import os
 import subprocess
 import sys
@@ -77,10 +76,9 @@ def build_briefing(cfg):
 
 
 def main(argv=None):
-    try:
-        json.load(sys.stdin)  # consume payload (source-aware logic could branch here)
-    except Exception:
-        pass
+    # Deliberately do NOT read stdin: a blocking json.load() can hang the hook
+    # until the SessionStart timeout, which fails the boot in some containers.
+    # The payload is unused; not reading it is safe (the writer just gets SIGPIPE).
     try:
         cfg = _config.load_config(start=os.environ.get("CLAUDE_PROJECT_DIR"))
         sys.stdout.write(build_briefing(cfg))

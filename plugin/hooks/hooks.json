@@ -6,12 +6,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c \"PYTHONPATH=\\\"${CLAUDE_PLUGIN_ROOT:-.}\\\" exec $(command -v python3 || command -v python) -m hipocampo.hooks.ensure_githooks\"",
+            "command": "sh -c \"PYTHONPATH=\\\"${CLAUDE_PLUGIN_ROOT:-.}\\\" $(command -v python3 || command -v python) -m hipocampo.hooks.ensure_githooks 2>/dev/null; exit 0\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "sh -c \"PYTHONPATH=\\\"${CLAUDE_PLUGIN_ROOT:-.}\\\" exec $(command -v python3 || command -v python) -m hipocampo.hooks.session_start\"",
+            "command": "sh -c \"PYTHONPATH=\\\"${CLAUDE_PLUGIN_ROOT:-.}\\\" $(command -v python3 || command -v python) -m hipocampo.hooks.session_start 2>/dev/null; exit 0\"",
             "timeout": 10
           }
         ]
@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c \"PYTHONPATH=\\\"${CLAUDE_PLUGIN_ROOT:-.}\\\" exec $(command -v python3 || command -v python) -m hipocampo.hooks.capture_sweep\"",
+            "command": "sh -c \"PYTHONPATH=\\\"${CLAUDE_PLUGIN_ROOT:-.}\\\" $(command -v python3 || command -v python) -m hipocampo.hooks.capture_sweep 2>/dev/null; exit 0\"",
             "timeout": 15
           }
         ]
