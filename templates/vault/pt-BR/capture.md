@@ -105,7 +105,9 @@ fontes; `agressivo` = + qualquer conceito/definição novo. Este vault: **{{CAPT
 > **Sem segredos (filtro de ingest):** nunca capture tokens, connection strings,
 > credenciais ou dados pessoais (PII). Conteúdo colado do chat (logs, configs,
 > transcrições) é redigido/omitido antes de gravar — vale para `raw/sources/` e
-> `knowledge/`.
+> `knowledge/`. A redação automática do sweep é **best-effort** (baseada em
+> padrões), não uma garantia — revise os arquivos de sweep/captura antes de
+> commitar, pois o vault é versionado em git.
 
 ## Verificação, busca e staleness
 

@@ -48,7 +48,7 @@ Hybrid, one git repo as source:
 | 3 | Governance: `vault.py` page model + validators (`doc_links`, `feature_doc_sync` via config `doc_sync`, `vault_sync`) + config-driven `preflight` + git-hook/CI templates | ✅ done (DQL→markdown views deferred to optional 5b) |
 | 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`registra`, `discovery`, `spec`, `busca`) + hooks (SessionStart briefing, Stop capture-sweep) + plugin/marketplace | ✅ done |
 | 5 | Vault templates + limiter docs (`capture.md`, `context-budget.md`, `README.md`, `knowledge/index.md`, `log.md`, note templates) — **bilingual EN + pt-BR** | ✅ done |
-| 6 | Improvements from research (below) as incremental PRs | ⬜ pending |
+| 6 | Improvements from research (below) as incremental PRs | ✅ done (#7 deferred by design) |
 | 7 | Dogfood: Go repo (mechanical, 8/8) + Node repo (live agent-walkthrough of the corrected skills, all green) — found & fixed real prose/hook gaps (v0.2.1). Origin-project-as-consumer still pending (production, on owner confirmation) | 🟡 dogfood done; migration pending |
 
 ## Validation
@@ -87,7 +87,7 @@ Hybrid, one git repo as source:
 
 | Origin script | Generic % | Target | Status |
 |---------------|-----------|--------|--------|
-| `vault_tools.py` (1078L) | ~70% | `hipocampo/vault.py` (+ `views.py`) | ⬜ (Phase 3) |
+| `vault_tools.py` (1078L) | ~70% | `hipocampo/vault.py` (+ `views.py`) | ✅ (split: `vault.py` governance + `views.py` materialization) |
 | `search-vault.py` (216L) | ~90% | `hipocampo/search.py` | ✅ |
 | `vault_index.py` (292L) | ~90% | `hipocampo/index.py` | ✅ |
 | `preflight.py` (47L) | ~80% | `hipocampo/preflight.py` | ✅ |

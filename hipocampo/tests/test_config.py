@@ -83,6 +83,29 @@ class LoadConfigTest(unittest.TestCase):
             cfg = load_config(start=root)
             self.assertEqual(cfg.inbox_decay_days, 1)
 
+    def test_valid_doc_sync_rule_loads(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / config.CONFIG_FILENAME).write_text(
+                '[[doc_sync]]\nname = "x"\n'
+                'paths = ["src/**"]\ndocs = ["docs/x.md"]\n',
+                encoding="utf-8",
+            )
+            cfg = load_config(start=root)
+            self.assertEqual(cfg.doc_sync[0]["paths"], ["src/**"])
+
+    def test_doc_sync_paths_as_string_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            # `paths` as a bare string (a common TOML slip) must fail fast.
+            (root / config.CONFIG_FILENAME).write_text(
+                '[[doc_sync]]\nname = "x"\n'
+                'paths = "src/**"\ndocs = ["docs/x.md"]\n',
+                encoding="utf-8",
+            )
+            with self.assertRaises(config.ConfigError):
+                load_config(start=root)
+
 
 if __name__ == "__main__":
     unittest.main()
