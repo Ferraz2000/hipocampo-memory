@@ -1,6 +1,6 @@
 ---
 name: search
-description: Keyword-search the vault (knowledge/insights/specs/raw sources) by relevance, BM25 with an optional FTS5 fast path. Use when the user says "/search", "search the brain/vault", "find notes about X", "find notes about X".
+description: Keyword-search the vault (knowledge/insights/specs/raw sources) by relevance, BM25 with an optional FTS5 fast path. Use when the user says "/search", "search the brain/vault", "find notes about X".
 ---
 
 # search — search the vault

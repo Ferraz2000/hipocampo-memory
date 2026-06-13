@@ -107,7 +107,9 @@ sources; `aggressive` = + any new concept/definition. This vault: **{{CAPTURE_LE
 > **No secrets (ingest filter):** never capture tokens, connection strings,
 > credentials, or personal data (PII). Pasted chat content (logs, configs,
 > transcripts) is redacted/omitted before writing — applies to `raw/sources/`
-> and `knowledge/` alike.
+> and `knowledge/` alike. The automated sweep redaction is **best-effort**
+> (pattern-based), not a guarantee — review sweep/capture files before committing,
+> since the vault is git-versioned.
 
 ## Verification, search, and staleness
 

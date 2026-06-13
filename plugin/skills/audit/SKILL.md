@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Fact-check a vault page against its cited sources — every claim must trace to a source that actually supports it. Use when the user says "/audit <path>", "fact-check this note", "fact-check this note", "verify this page against its sources".
+description: Fact-check a vault page against its cited sources — every claim must trace to a source that actually supports it. Use when the user says "/audit <path>", "fact-check this note", "verify this page against its sources".
 ---
 
 # audit — fact-check a page against its sources

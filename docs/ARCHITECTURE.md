@@ -47,9 +47,10 @@ frontmatter-as-truth, and a per-commit doc-sync gate.
    - `inbox_decay.py`, `globs.py`.
 4. **The plugin** (`plugin/`): generator skills (`brain-init`,
    `brain-router-init`, `brain-scripts-init`, `brain-update`) and workflow skills
-   (`registra`, `busca`, `discovery`, `spec`, `challenge`, `discover-standards`,
-   `garden`, `archive-closed`) in the open Agent Skills format, plus
-   `hooks/hooks.json` wiring the two hooks. The repo root is the plugin root
+   (`capture`, `search`, `discovery`, `spec`, `challenge`, `discover-standards`,
+   `garden`, `archive-closed`, `audit`, `weekly`, `promote`, `postmortem`,
+   `implement`, `low-token`, `from-roadmap`, `execute-insight`) in the open Agent
+   Skills format, plus `hooks/hooks.json` wiring the two hooks. The repo root is the plugin root
    (`.claude-plugin/plugin.json` with `skills`/`hooks` path keys) so skills can
    reach `templates/` and the package.
 
@@ -59,9 +60,9 @@ frontmatter-as-truth, and a per-commit doc-sync gate.
 scaffold:  brain-init ──▶ <vault>/ + brain.config.toml
            brain-scripts-init ──▶ vendored hipocampo/ + .githooks + CI
 
-use:       registra (write-gated) ──▶ knowledge/insights/raw + index + log
-           busca / challenge / discovery ──▶ search (BM25/FTS5)
-           Stop hook ──▶ capture-sweep ──▶ knowledge/_inbox  ──(triage via /registra)──▶ knowledge/
+use:       capture (write-gated) ──▶ knowledge/insights/raw + index + log
+           search / challenge / discovery ──▶ search (BM25/FTS5)
+           Stop hook ──▶ capture-sweep ──▶ knowledge/_inbox  ──(triage via /capture)──▶ knowledge/
 
 govern:    pre-commit ──▶ feature_doc_sync (blocks sensitive code w/o its doc)
            pre-push / CI ──▶ preflight (all validators)
