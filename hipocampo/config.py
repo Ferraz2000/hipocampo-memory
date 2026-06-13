@@ -288,6 +288,33 @@ class Config:
         return dict(self._d)
 
 
+def _require_str_list(value, where):
+    """Guard a field that must be a list of strings. A bare string is a common
+    TOML slip and would be iterated character-by-character downstream (silently
+    wrong), so fail fast with an actionable message instead."""
+    if not isinstance(value, list) or not all(isinstance(x, str) for x in value):
+        raise ConfigError(
+            f'{where} must be a list of strings — use {where} = ["..."], '
+            f'not {where} = "...".'
+        )
+
+
+def _validate(data):
+    """Fail fast on structurally invalid config that would otherwise misbehave."""
+    doc_sync = data.get("doc_sync", [])
+    if not isinstance(doc_sync, list):
+        raise ConfigError("doc_sync must be a list of [[doc_sync]] rule tables.")
+    for i, rule in enumerate(doc_sync):
+        if not isinstance(rule, dict):
+            raise ConfigError(f"doc_sync rule #{i + 1} must be a table.")
+        label = rule.get("name", f"#{i + 1}")
+        if "paths" in rule:
+            _require_str_list(rule["paths"], f'doc_sync["{label}"].paths')
+        if "docs" in rule:
+            _require_str_list(rule["docs"], f'doc_sync["{label}"].docs')
+    _require_str_list(data.get("doc_sync_escape_globs", []), "doc_sync_escape_globs")
+
+
 def load_config(start=None) -> Config:
     """Find and load ``brain.config.toml``, merged over :data:`DEFAULTS`.
 
@@ -315,4 +342,5 @@ def load_config(start=None) -> Config:
         if local_path.is_file():
             data = deep_merge(data, _load_toml(local_path))
 
+    _validate(data)
     return Config(data, root, config_path)
