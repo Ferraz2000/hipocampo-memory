@@ -5,8 +5,8 @@
   "version": "0.8.3",
   "description": "Persistent, git-versioned, human-gated memory for coding agents — vault scaffolding, capture, BM25/FTS5 search, and a config-driven doc-sync gate.",
   "author": { "name": "Lucas Moraes" },
-  "homepage": "https://github.com/Ferraz2000/hipocampo",
-  "repository": "https://github.com/Ferraz2000/hipocampo",
+  "homepage": "https://github.com/Ferraz2000/hipocampo-memory",
+  "repository": "https://github.com/Ferraz2000/hipocampo-memory",
   "license": "MIT",
   "keywords": [
     "memory", "agents", "second-brain", "obsidian", "knowledge",

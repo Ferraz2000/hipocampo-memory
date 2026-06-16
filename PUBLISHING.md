@@ -10,11 +10,11 @@ the repo, anyone can install today:
 
 ```sh
 # Claude Code (plugin: skills + hooks)
-/plugin marketplace add Ferraz2000/hipocampo
+/plugin marketplace add Ferraz2000/hipocampo-memory
 /plugin install hipocampo@hipocampo
 
 # Cross-agent (Claude Code / Codex / Gemini): just the skills
-npx skills add Ferraz2000/hipocampo
+npx skills add Ferraz2000/hipocampo-memory
 ```
 
 ## Cutting a release

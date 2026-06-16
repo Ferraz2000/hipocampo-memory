@@ -12,7 +12,7 @@ updated: {{DATE}}
 
 Este é o segundo cérebro do projeto: memória durável, versionada em git, com
 write-gate humano, para agentes de código. Scaffoldado por
-[hipocampo](https://github.com/Ferraz2000/hipocampo).
+[hipocampo](https://github.com/Ferraz2000/hipocampo-memory).
 
 > **Agentes:** não façam bulk-read deste vault. Sigam
 > [context-budget](context-budget.md) (index-first, never bulk-read) e

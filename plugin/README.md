@@ -12,12 +12,12 @@ plugin/
 ## Install
 
 ```sh
-/plugin marketplace add Ferraz2000/hipocampo
+/plugin marketplace add Ferraz2000/hipocampo-memory
 /plugin install hipocampo@hipocampo
 ```
 
 The skills also work cross-agent (Codex `.agents/skills`, Gemini `.gemini/skills`)
-via `npx skills add Ferraz2000/hipocampo`.
+via `npx skills add Ferraz2000/hipocampo-memory`.
 
 ## Hooks and the python package
 

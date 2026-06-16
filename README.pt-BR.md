@@ -18,10 +18,10 @@ vezes, incluindo um projeto de produção como primeiro consumidor
 ## Quickstart (2 minutos)
 
 ```sh
-/plugin marketplace add Ferraz2000/hipocampo     # Claude Code (skills + hooks)
+/plugin marketplace add Ferraz2000/hipocampo-memory     # Claude Code (skills + hooks)
 /plugin install hipocampo@hipocampo
 # ou cross-agent (Claude Code / Codex / Gemini), só as skills:
-npx skills add Ferraz2000/hipocampo
+npx skills add Ferraz2000/hipocampo-memory
 ```
 
 Aí diga `/brain-init` no seu projeto. **O agente faz o setup** — ele te faz três

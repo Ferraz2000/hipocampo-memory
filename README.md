@@ -17,10 +17,10 @@ including a production project as first consumer ([details](PLAN.md)).
 ## Quickstart (2 minutes)
 
 ```sh
-/plugin marketplace add Ferraz2000/hipocampo     # Claude Code (skills + hooks)
+/plugin marketplace add Ferraz2000/hipocampo-memory     # Claude Code (skills + hooks)
 /plugin install hipocampo@hipocampo
 # or cross-agent (Claude Code / Codex / Gemini), skills only:
-npx skills add Ferraz2000/hipocampo
+npx skills add Ferraz2000/hipocampo-memory
 ```
 
 Then say `/brain-init` in your project. **The agent does the setup** — it asks
