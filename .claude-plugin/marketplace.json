@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "hipocampo",
+  "metadata": {
+    "description": "Persistent, git-versioned, human-gated memory for coding agents."
+  },
+  "owner": {
+    "name": "Ferraz2000",
+    "url": "https://github.com/Ferraz2000"
+  },
+  "plugins": [
+    {
+      "name": "hipocampo",
+      "source": ".",
+      "description": "Persistent, git-versioned, human-gated memory for coding agents.",
+      "license": "MIT",
+      "homepage": "https://github.com/Ferraz2000/hipocampo",
+      "repository": "https://github.com/Ferraz2000/hipocampo",
+      "category": "productivity",
+      "tags": ["memory", "second-brain", "knowledge", "doc-sync"]
+    }
+  ]
+}
