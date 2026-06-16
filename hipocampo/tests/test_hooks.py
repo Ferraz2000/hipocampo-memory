@@ -51,12 +51,12 @@ class ScanTranscriptTest(unittest.TestCase):
                 {"role": "assistant", "content": [{"text": "that is an anti-pattern"}]},
                 {"role": "assistant", "content": "ref https://example.com/x"},
             ])
-            triggers, urls, registra = cs.scan_transcript(path, self.cfg)
+            triggers, urls, captured = cs.scan_transcript(path, self.cfg)
             found = {t.lower() for t, _ in triggers}
             self.assertIn("decided", found)
             self.assertIn("anti-pattern", found)
             self.assertIn("https://example.com/x", urls)
-            self.assertFalse(registra)
+            self.assertFalse(captured)
 
     def test_user_trigger_not_fired_from_agent_message(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -66,11 +66,11 @@ class ScanTranscriptTest(unittest.TestCase):
             triggers, _urls, _r = cs.scan_transcript(path, self.cfg)
             self.assertEqual(triggers, [])  # "decided" is a user-only trigger
 
-    def test_registra_invocation_detected(self):
+    def test_capture_invocation_detected(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = _transcript(tmp, [{"role": "user", "content": "/capture this decision"}])
-            _t, _u, registra = cs.scan_transcript(path, self.cfg)
-            self.assertTrue(registra)
+            _t, _u, captured = cs.scan_transcript(path, self.cfg)
+            self.assertTrue(captured)
 
 
 class SessionStartTest(unittest.TestCase):

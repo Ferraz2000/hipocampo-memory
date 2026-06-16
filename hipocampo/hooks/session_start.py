@@ -67,12 +67,15 @@ def build_briefing(cfg):
     if inbox.is_dir():
         sweeps = sorted(p.name for p in inbox.glob("*.md"))
         if sweeps:
-            lines.append(f"## Pending inbox sweeps ({len(sweeps)}) — triage via /registra")
+            lines.append(f"## Pending inbox sweeps ({len(sweeps)}) — triage via /capture")
             lines += [f"- {s}" for s in sweeps[:10]]
             lines.append("")
 
     text = "\n".join(lines).rstrip() + "\n"
-    return text[:_CAP]
+    if len(text) <= _CAP:
+        return text
+    # Truncate on a line boundary so we never emit half a markdown line.
+    return text[:_CAP].rsplit("\n", 1)[0] + "\n"
 
 
 def main(argv=None):
