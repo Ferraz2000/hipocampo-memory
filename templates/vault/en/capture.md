@@ -56,10 +56,11 @@ A different axis from the 4 types: those are about **the project**; this is abou
 > **Is this a preference / pet-peeve / personal convention about HOW to work with
 > me (not a project fact)?** → `.claude/rules/USER.md`.
 
-Native Claude Code mechanism: `.claude/rules/*.md` is **committed** (survives the
-ephemeral/web container) and **auto-loaded every session**; pull-based agents
-(Codex/Gemini) read it via a pointer in `AGENTS.md`. Same human write-gate as the
-other destinations; keep the file compact. **Don't confuse:** a fact that touches
+The path is configurable (`[memory] persona_file` in `brain.config.toml`). On
+Claude Code, `.claude/rules/*.md` is **committed** (survives the ephemeral/web
+container) and **auto-loaded every session**; pull-based agents (Codex/Gemini)
+point the file from `AGENTS.md` instead. Same human write-gate as the other
+destinations; keep the file compact. **Don't confuse:** a fact that touches
 code/tests is a contract (gated), not persona.
 
 ## Trigger 1 — explicit verb

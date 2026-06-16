@@ -93,6 +93,13 @@ put the vault behind a protected branch and review PRs.
 
 ## Distribution
 
-Two tracks, one repo: a Claude Code **plugin** (skills + hooks, via marketplace)
-and **cross-agent skills** (Agent Skills open format, via `npx skills add`). See
-[PUBLISHING](../PUBLISHING.md).
+One repo, one portable core, thin per-agent adapters. The skills (open Agent
+Skills format) are read **natively** by Claude Code, Codex, and Gemini; the
+`AGENTS.md` router, the zero-dep Python package, and the git-hook/CI templates run
+anywhere. The two session automations are wired to each agent's native hook system:
+Claude Code via the plugin's `hooks.json` (`SessionStart`/`Stop`), Codex via
+`.codex/hooks.json`, Gemini via `.gemini/settings.json` (`SessionStart`/
+`SessionEnd`) — installed from `templates/hooks/` by `brain-scripts-init`. The
+hook logic (`hipocampo/hooks/`) is identical across agents; only the wiring and
+the output envelope (`--format json` → `additionalContext`) differ. See the
+[cross-agent matrix](../README.md#cross-agent-support) and [PUBLISHING](../PUBLISHING.md).

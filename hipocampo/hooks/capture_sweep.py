@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""Stop hook: sweep the session transcript for un-captured candidates (durable
-decisions, lessons, external sources) and write a sweep into the vault inbox for
-later triage. Never blocks.
+"""Session-end hook: sweep the session transcript for un-captured candidates
+(durable decisions, lessons, external sources) and write a sweep into the vault
+inbox for later triage. Never blocks.
 
 Implements the sleep-time-consolidation pattern: the agent's session leaves a
 journal the human later triages via /capture. Everything project-specific
 (triggers, internal hosts, inbox path, sweep type) comes from brain.config.toml.
 
-Stop-hook stdin JSON: {"transcript_path", "session_id", "stop_hook_active"}.
+Wired as Claude Code `Stop`, Codex `Stop`, or Gemini `SessionEnd` — all pass a
+`transcript_path` on stdin. Stdin JSON (fields vary by agent, all optional):
+{"transcript_path", "session_id"/"sessionId", "stop_hook_active", "reason"}.
 
 Behavior:
-- Skip if stop_hook_active (avoid loops) or if /capture was invoked this session.
+- Skip on stop_hook_active (Claude re-entrancy) or reason=="clear" (Gemini), or
+  if /capture was invoked this session.
 - Skip if a sweep file already exists for this session.
 - Detect configured triggers (user-side and agent-side) + external URLs.
 - Dedup against what's already captured (raw/sources, knowledge, pending inbox).
@@ -25,6 +28,7 @@ from datetime import datetime
 
 from .. import config as _config
 from .. import inbox_decay
+from . import project_dir
 
 URL_RE = re.compile(r"https?://[\w\-\.]+(?:/[\w\-\./?=&%#~+]*)?", re.IGNORECASE)
 
@@ -103,17 +107,38 @@ def filter_new(urls, triggers_hit, captured_urls, inbox_blob):
     return new_urls, new_triggers
 
 
-def _extract(ev):
-    """(text, role) from a transcript event across common shapes."""
-    content = ev.get("content") or ev.get("message", {}).get("content")
+def _content_text(content):
+    """Flatten a content value across agent transcript shapes (str, or a list of
+    parts each carrying `text`/`content`). Gemini uses `parts: [{text}]`; Claude
+    uses `content: [{type:text, text}]`; Codex varies (format is not stable)."""
+    if isinstance(content, str):
+        return content
     if isinstance(content, list):
-        text = " ".join(c.get("text", "") for c in content if isinstance(c, dict))
-    elif isinstance(content, str):
-        text = content
-    else:
-        text = ""
-    role = (ev.get("type") or ev.get("role")
-            or (ev.get("message") or {}).get("role") or "").lower()
+        out = []
+        for c in content:
+            if isinstance(c, str):
+                out.append(c)
+            elif isinstance(c, dict):
+                out.append(c.get("text") or c.get("content") or "")
+        return " ".join(t for t in out if t)
+    return ""
+
+
+def _extract(ev):
+    """(text, role) from a transcript event across Claude/Codex/Gemini shapes."""
+    msg = ev.get("message") if isinstance(ev.get("message"), dict) else {}
+    # `parts` is Gemini's container; `content` is Claude/Codex's.
+    content = (ev.get("content") if ev.get("content") is not None
+               else msg.get("content") if msg.get("content") is not None
+               else ev.get("parts") if ev.get("parts") is not None
+               else msg.get("parts"))
+    text = _content_text(content)
+    role = (ev.get("role") or msg.get("role") or ev.get("type") or "").lower()
+    # Normalize agent-specific role labels onto user/assistant.
+    if role in ("human",):
+        role = "user"
+    elif role in ("model", "agent", "ai"):
+        role = "assistant"
     return text, role
 
 
@@ -150,7 +175,8 @@ def scan_transcript(transcript_path, cfg):
     return triggers_hit, urls, capture_invoked
 
 
-def _render_sweep(date, short, session_id, sweep_type, triggers_hit, urls):
+def _render_sweep(date, short, session_id, sweep_type, triggers_hit, urls,
+                  persona_file=".claude/rules/USER.md"):
     lines = ["---",
              f"title: 'Capture sweep — session {short} ({date})'",
              f"type: {sweep_type}",
@@ -166,7 +192,7 @@ def _render_sweep(date, short, session_id, sweep_type, triggers_hit, urls):
              ">",
              "> - **Durable concept** → move to `knowledge/<area>/<slug>.md`",
              "> - **External source** → move to `raw/sources/<date>-<slug>.md`",
-             "> - **Persona/preference** → append to your agent rules file (e.g. `.claude/rules/USER.md`)",
+             f"> - **Persona/preference** → append to your agent rules file (`{persona_file}`)",
              "> - **Not worth it** → delete this file",
              ">",
              "> ⚠ **SECURITY:** secret-shaped strings were auto-redacted (best-effort, not a"
@@ -199,18 +225,21 @@ def main(argv=None):
         payload = json.load(sys.stdin)
     except Exception:
         return 0
-    if payload.get("stop_hook_active"):
+    # Claude Code re-entrancy guard; Gemini SessionEnd `reason` (skip context
+    # clears, not genuine session ends). Both absent on agents that don't send them.
+    if payload.get("stop_hook_active") or payload.get("reason") == "clear":
         return 0
 
     transcript_path = payload.get("transcript_path")
-    session_id = payload.get("session_id", "unknown")
+    # session_id field name varies; fall back so the sweep filename still forms.
+    session_id = payload.get("session_id") or payload.get("sessionId") or "unknown"
     if not transcript_path or not os.path.exists(transcript_path):
         return 0
 
     try:
-        cfg = _config.load_config(start=os.environ.get("CLAUDE_PROJECT_DIR"))
+        cfg = _config.load_config(start=project_dir())
     except _config.ConfigError:
-        return 0  # bad config shouldn't break the session's Stop hook
+        return 0  # bad config shouldn't break the session-end hook
     cfg.inbox_dir.mkdir(parents=True, exist_ok=True)
 
     try:  # housekeeping: expire stale sweeps
@@ -240,7 +269,8 @@ def main(argv=None):
         return 0
 
     out_path.write_text(
-        _render_sweep(date, short, session_id, cfg.inbox_sweep_type, triggers_hit, urls),
+        _render_sweep(date, short, session_id, cfg.inbox_sweep_type, triggers_hit, urls,
+                      persona_file=cfg.persona_file),
         encoding="utf-8")
     rel = os.path.relpath(out_path, cfg.repo_root)
     print(f"capture-sweep: {len(triggers_hit)} trigger(s) + {len(urls)} URL(s). Triage in {rel}",

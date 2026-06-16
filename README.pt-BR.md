@@ -11,7 +11,7 @@ sessões e de deixar docs apodrecerem — em qualquer projeto, qualquer linguage
 > pipeline com write-gate as transforma numa base `knowledge/` curada e
 > auditável, que vive no seu repo e se compõe ao longo do tempo.
 
-**Status: v0.8.3 — usável.** 97 testes, CI verde, validado ponta-a-ponta cinco
+**Status: v0.8.3 — usável.** 107 testes, CI verde, validado ponta-a-ponta cinco
 vezes, incluindo um projeto de produção como primeiro consumidor
 ([detalhes](PLAN.md)).
 
@@ -20,9 +20,13 @@ vezes, incluindo um projeto de produção como primeiro consumidor
 ```sh
 /plugin marketplace add Ferraz2000/hipocampo-memory     # Claude Code (skills + hooks)
 /plugin install hipocampo@hipocampo
-# ou cross-agent (Claude Code / Codex / Gemini), só as skills:
+# ou cross-agent (Claude Code / Codex / Gemini) — as skills instalam nativamente:
 npx skills add Ferraz2000/hipocampo-memory
 ```
+
+No Codex e no Gemini as skills são lidas nativamente (sem wrapper); o
+`brain-scripts-init` também conecta os hooks de sessão neles. Veja
+[Suporte cross-agent](#suporte-cross-agent).
 
 Aí diga `/brain-init` no seu projeto. **O agente faz o setup** — ele te faz três
 perguntas (idioma, onde fica o vault, áreas iniciais), gera a config e scaffolda
@@ -108,8 +112,31 @@ você diz.** Adote incrementalmente:
 - **Ciclo de vida de insights:** `from-roadmap` → `promote` → `implement` / `execute-insight` → `weekly` / `postmortem` / `audit`.
 - **Manutenção:** `garden`, `archive-closed` (+ o fixer `normalize` e o self-test `canary`).
 
-Mais dois hooks (briefing git no SessionStart; capture-sweep no Stop com
-redaction de segredos) e seis validators config-driven rodados pelo `preflight`.
+Mais dois hooks de sessão (briefing git no início; capture-sweep no fim, com
+redaction de segredos) — conectados por agente — e seis validators config-driven
+rodados pelo `preflight`.
+
+## Suporte cross-agent
+
+Um kit, adaptadores finos por agente. O núcleo portátil (as 20 skills SKILL.md, o
+router `AGENTS.md`, o pacote Python zero-dep, git-hooks + CI) roda em qualquer
+lugar; os automatismos de sessão são conectados ao sistema de hooks nativo de cada
+agente.
+
+| Capacidade | Claude Code | Codex CLI | Gemini CLI |
+|------------|-------------|-----------|------------|
+| Skills (SKILL.md) | nativo | nativo (`.agents/skills`) | nativo (`.gemini/skills`) |
+| Router (`AGENTS.md`) | via `CLAUDE.md → @AGENTS.md` | auto-descoberto | setar `context.fileName` em `.gemini/settings.json` |
+| Briefing no início da sessão | hook `SessionStart` | hook `SessionStart` | hook `SessionStart` |
+| Capture-sweep no fim | hook `Stop` | hook `Stop` | hook `SessionEnd` |
+| Memória de persona | `.claude/rules/USER.md` (auto-load) | arquivo apontado pelo `AGENTS.md` | arquivo apontado pelo `AGENTS.md` |
+| Regras por path | nativo (`.claude/rules/*.md` `paths:`) | dobrar no `AGENTS.md` | dobrar no `AGENTS.md` |
+| Gate de doc-sync, busca, validators | ✅ (Python vendorado) | ✅ | ✅ |
+
+Notas: os hooks do Codex são **experimentais** (o formato de transcript não é
+estável — o sweep degrada graciosamente). A chave de router do Gemini é
+`context.fileName` (builds antigos: `contextFileName`). O caminho da persona é
+configurável via `[memory] persona_file` no `brain.config.toml`.
 
 ## Configuração
 

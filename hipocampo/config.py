@@ -45,6 +45,10 @@ DEFAULTS = {
     "active_states": ["ready", "in-progress"],
     "inactive_statuses": ["rejected", "closed", "discarded", "superseded", "implemented"],
     "area_aliases": {},
+    # Where persona/preference captures land. Claude Code auto-loads
+    # .claude/rules/USER.md; other agents (Codex/Gemini) read it via a pointer in
+    # AGENTS.md — set this to a router-referenced path there (e.g. "<vault>/USER.md").
+    "memory": {"persona_file": ".claude/rules/USER.md"},
     "inbox": {"decay_days": 30, "sweep_type": "capture-sweep"},
     "search": {
         "dirs": ["knowledge", "insights", "specs", "raw/sources"],
@@ -190,6 +194,12 @@ class Config:
     @property
     def area_aliases(self) -> dict:
         return dict(self._d["area_aliases"])
+
+    # -- memory -----------------------------------------------------------
+    @property
+    def persona_file(self) -> str:
+        """Repo-relative path where persona/preference captures land."""
+        return self._d["memory"]["persona_file"]
 
     # -- inbox ------------------------------------------------------------
     @property

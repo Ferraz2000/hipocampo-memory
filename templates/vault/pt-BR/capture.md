@@ -55,10 +55,11 @@ trabalhar com o usuário**. Heurística:
 > **Isto é uma preferência/pet-peeve/convenção pessoal de COMO trabalhar comigo
 > (não um fato do projeto)?** → `.claude/rules/USER.md`.
 
-Mecanismo nativo do Claude Code: `.claude/rules/*.md` é **commitado** (sobrevive
-ao container web/efêmero) e **auto-carregado toda sessão**; agentes pull-based
-(Codex/Gemini) leem via ponteiro no `AGENTS.md`. Mesmo write-gate humano dos
-outros destinos; mantenha o arquivo compacto. **Não confundir:** fato que toca
+O caminho é configurável (`[memory] persona_file` no `brain.config.toml`). No
+Claude Code, `.claude/rules/*.md` é **commitado** (sobrevive ao container
+web/efêmero) e **auto-carregado toda sessão**; agentes pull-based (Codex/Gemini)
+apontam o arquivo a partir do `AGENTS.md`. Mesmo write-gate humano dos outros
+destinos; mantenha o arquivo compacto. **Não confundir:** fato que toca
 código/teste é contrato (gated), não persona.
 
 ## Gatilho 1 — verbo explícito

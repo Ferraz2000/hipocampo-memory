@@ -72,6 +72,39 @@ class ScanTranscriptTest(unittest.TestCase):
             _t, _u, captured = cs.scan_transcript(path, self.cfg)
             self.assertTrue(captured)
 
+    def test_gemini_parts_shape_is_parsed(self):
+        # Gemini transcript events carry text under `parts`, role under `model`.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _transcript(tmp, [
+                {"role": "user", "parts": [{"text": "we decided to use Redis"}]},
+                {"role": "model", "parts": [{"text": "noted, that is canonical now"}]},
+            ])
+            triggers, _urls, _c = cs.scan_transcript(path, self.cfg)
+            found = {t.lower() for t, _ in triggers}
+            self.assertIn("decided", found)      # user-side trigger
+            self.assertIn("canonical", found)    # agent-side trigger via role=model
+
+    def test_codex_message_wrapped_shape_is_parsed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _transcript(tmp, [
+                {"message": {"role": "user", "content": "the rule of thumb is X"}},
+            ])
+            triggers, _urls, _c = cs.scan_transcript(path, self.cfg)
+            self.assertIn("rule of thumb", {t.lower() for t, _ in triggers})
+
+
+class ExtractHelperTest(unittest.TestCase):
+    def test_content_text_flattens_shapes(self):
+        self.assertEqual(cs._content_text("hi"), "hi")
+        self.assertEqual(cs._content_text([{"text": "a"}, {"text": "b"}]), "a b")
+        self.assertEqual(cs._content_text(["a", "b"]), "a b")
+        self.assertEqual(cs._content_text(None), "")
+
+    def test_extract_normalizes_roles(self):
+        self.assertEqual(cs._extract({"role": "human", "content": "x"})[1], "user")
+        self.assertEqual(cs._extract({"role": "model", "parts": [{"text": "y"}]})[1], "assistant")
+        self.assertEqual(cs._extract({"type": "assistant", "content": "z"})[1], "assistant")
+
 
 class SessionStartTest(unittest.TestCase):
     def test_base_falls_back_to_master_when_main_missing(self):
@@ -121,6 +154,50 @@ class SessionStartTest(unittest.TestCase):
             out = ss.build_briefing(cfg)
             self.assertIn("Work in progress", out)
             self.assertLessEqual(len(out), 8000)
+
+    def test_json_envelope_wraps_additional_context(self):
+        env = ss._emit("BRIEFING TEXT", "json")
+        obj = json.loads(env)
+        self.assertEqual(obj["hookSpecificOutput"]["hookEventName"], "SessionStart")
+        self.assertEqual(obj["hookSpecificOutput"]["additionalContext"], "BRIEFING TEXT")
+
+    def test_main_format_json_emits_valid_json_envelope(self):
+        # Guards the CLI wiring: --format json must reach argparse and produce JSON
+        # on stdout (not raw markdown), which is what Codex/Gemini parse.
+        import contextlib
+        import io
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = ss.main(["--format", "json"])
+        self.assertEqual(rc, 0)
+        obj = json.loads(buf.getvalue())  # raises if it emitted plain text
+        self.assertEqual(obj["hookSpecificOutput"]["hookEventName"], "SessionStart")
+
+    def test_main_default_format_is_plain_text(self):
+        import contextlib
+        import io
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            ss.main([])
+        self.assertTrue(buf.getvalue().lstrip().startswith("#"))
+
+    def test_plain_format_is_raw_text(self):
+        self.assertEqual(ss._emit("BRIEFING TEXT", "plain"), "BRIEFING TEXT")
+
+
+class PersonaConfigTest(unittest.TestCase):
+    def test_render_sweep_uses_configured_persona_file(self):
+        out = cs._render_sweep("2026-06-16", "abcd1234", "sid", "capture-sweep",
+                               [("decided", "we decided X")], set(),
+                               persona_file="docs/brain/USER.md")
+        self.assertIn("docs/brain/USER.md", out)
+        self.assertNotIn(".claude/rules/USER.md", out)
+
+    def test_persona_file_default_and_override(self):
+        self.assertEqual(Config(DEFAULTS, Path("/repo")).persona_file, ".claude/rules/USER.md")
+        from hipocampo.config import deep_merge
+        merged = deep_merge(DEFAULTS, {"memory": {"persona_file": "AGENTS/USER.md"}})
+        self.assertEqual(Config(merged, Path("/repo")).persona_file, "AGENTS/USER.md")
 
 
 if __name__ == "__main__":

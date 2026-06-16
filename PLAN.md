@@ -83,6 +83,29 @@ Hybrid, one git repo as source:
   (idempotent; without it the doc-sync gate silently never runs in fresh/web
   containers). Wired first in plugin hooks.json.
 
+## Phase 9 — real cross-agent (Codex + Gemini)
+
+Research (primary sources, late 2025/early 2026) confirmed the portable core was
+already cross-agent and the rest had native equivalents:
+
+- **Skills** are read natively by all three CLIs (Claude Code, Codex
+  `.agents/skills`, Gemini `.gemini/skills`) — `npx skills` is just an installer,
+  no wrappers/MCP.
+- **Router** `AGENTS.md`: Codex auto-discovers; Gemini needs `context.fileName`;
+  Claude keeps the `CLAUDE.md → @AGENTS.md` bridge.
+- **Hooks**: Codex (`SessionStart`/`Stop`) and Gemini (`SessionStart`/`SessionEnd`)
+  both ship full hook frameworks with `additionalContext` injection and
+  `transcript_path`. Ported the two automations natively:
+  - `session_start --format json` emits `hookSpecificOutput.additionalContext`
+    (accepted by all three; plain stdout kept as default/Claude path).
+  - `capture_sweep` reads each agent's transcript shape (Gemini `parts`, Claude/
+    Codex `content`, `message`-wrapped) and tolerates Codex's unstable format;
+    skips Gemini `reason == "clear"`.
+  - New `templates/hooks/{codex,gemini}/` wiring; `brain-scripts-init` installs it.
+- **Persona** path is config-driven (`[memory] persona_file`); Codex/Gemini point
+  it from `AGENTS.md` instead of Claude's auto-loaded `.claude/rules/`.
+- ⚠️ Codex hooks experimental; Gemini key drift `contextFileName`→`context.fileName`.
+
 ## Script port status (origin → `hipocampo/`)
 
 | Origin script | Generic % | Target | Status |

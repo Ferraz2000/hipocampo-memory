@@ -51,6 +51,13 @@ inactive_statuses = ["rejected", "closed", "discarded", "superseded", "implement
 # Example: { tech = "technical", arch = "architecture" }
 [area_aliases]
 
+# Where persona/preference captures land (and what the capture-sweep points at).
+# Claude Code auto-loads `.claude/rules/USER.md` every session; Codex/Gemini have
+# no path-auto-load, so set this to a file your AGENTS.md router references
+# (e.g. "docs/brain/USER.md") so it's pulled in cross-agent.
+[memory]
+persona_file = ".claude/rules/USER.md"
+
 # Inbox decay: auto-sweeps of this `type:` older than decay_days, still in triage
 # and not pinned, are expired. Markdown stays the source of truth; only the
 # kit's own ephemeral sweeps are ever removed.

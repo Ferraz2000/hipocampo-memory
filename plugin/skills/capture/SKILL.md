@@ -24,7 +24,8 @@ Capture what the user marked (or `$ARGUMENTS`):
      a doc-sync change (the `feature_doc_sync` gate applies).
    - **Proposal** → `<vault>/insights/<area>/<slug>.md` from `template-insight.md`.
    - **Persona/preference** (how to work with the user, not a project fact) →
-     append to `.claude/rules/USER.md` (compact; perishable claims carry `[as of YYYY-MM]`).
+     append to the persona file (`[memory] persona_file` in `brain.config.toml`,
+     default `.claude/rules/USER.md`; compact; perishable claims carry `[as of YYYY-MM]`).
 2. **Cite the source** in `sources:` (path to `raw/` or a URL); set `provenance`
    (`extracted` | `inferred` | `ambiguous`).
 3. **If you wrote to `knowledge/<area>/`**, add a one-line entry under that area in
