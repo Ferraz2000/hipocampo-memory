@@ -11,7 +11,7 @@ sessões e de deixar docs apodrecerem — em qualquer projeto, qualquer linguage
 > pipeline com write-gate as transforma numa base `knowledge/` curada e
 > auditável, que vive no seu repo e se compõe ao longo do tempo.
 
-**Status: v0.8.3 — usável.** 95 testes, CI verde, validado ponta-a-ponta cinco
+**Status: v0.8.3 — usável.** 97 testes, CI verde, validado ponta-a-ponta cinco
 vezes, incluindo um projeto de produção como primeiro consumidor
 ([detalhes](PLAN.md)).
 
@@ -109,7 +109,7 @@ você diz.** Adote incrementalmente:
 - **Manutenção:** `garden`, `archive-closed` (+ o fixer `normalize` e o self-test `canary`).
 
 Mais dois hooks (briefing git no SessionStart; capture-sweep no Stop com
-redaction de segredos) e nove validators config-driven rodados pelo `preflight`.
+redaction de segredos) e seis validators config-driven rodados pelo `preflight`.
 
 ## Configuração
 

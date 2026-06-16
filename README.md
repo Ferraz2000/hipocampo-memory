@@ -11,7 +11,7 @@ docs rot — in any project, any language.
 > `_inbox/`, and a write-gated pipeline turns them into a curated, auditable
 > `knowledge/` base that lives in your repo and compounds over time.
 
-**Status: v0.8.3 — usable.** 95 tests, CI green, validated end-to-end five times
+**Status: v0.8.3 — usable.** 97 tests, CI green, validated end-to-end five times
 including a production project as first consumer ([details](PLAN.md)).
 
 ## Quickstart (2 minutes)
@@ -108,7 +108,7 @@ you say.** Adopt incrementally:
 - **Maintenance:** `garden`, `archive-closed` (+ the `normalize` fixer and the `canary` self-test).
 
 Plus two hooks (SessionStart git briefing; Stop capture-sweep with secret
-redaction) and nine config-driven validators run by `preflight`.
+redaction) and six config-driven validators run by `preflight`.
 
 ## Configuration
 
