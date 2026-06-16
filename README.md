@@ -143,6 +143,11 @@ and you evolve it by asking the agent ("add a doc-sync rule for `src/api/`",
 "raise the decay window to 60 days"). The full schema, for auditing or manual
 edits: [`brain.config.example.toml`](brain.config.example.toml).
 
+**Don't want the gate blocking you?** Enforcement is configurable per point
+(`[enforcement]`): `block` (fail), `warn` (surface findings, never block), or
+`off`. `brain-scripts-init` asks and recommends **warn locally + block in CI** —
+you're never stuck mid-task, but drift still can't merge.
+
 ## Why this and not a memory framework
 
 The 2025–2026 state of the art converged on **markdown as the source of truth +

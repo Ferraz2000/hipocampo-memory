@@ -66,6 +66,12 @@ DEFAULTS = {
     "capture_internal_hosts": ["localhost", "127.0.0.1"],
     "required_docs": [],
     "validators": ["doc_links", "feature_doc_sync", "vault_sync"],
+    # How hard each gate point pushes back. Per point: "block" (fail the op),
+    # "warn" (surface findings, never block), or "off" (skip). Defaults preserve
+    # the historical blocking behavior; brain-scripts-init can relax local gates
+    # (e.g. warn) while keeping CI strict. The git hooks/CI call `hipocampo.gate`,
+    # which reads these — validators themselves always report truthfully.
+    "enforcement": {"pre_commit": "block", "pre_push": "block", "ci": "block"},
     # router_lint is opt-in (not in the default validators): add "router_lint" to
     # validators to enforce a lean AGENTS.md. Lean routers measurably help agents.
     "router": {"file": "AGENTS.md", "max_lines": 120},
@@ -281,6 +287,15 @@ class Config:
     def doc_sync(self) -> list:
         return list(self._d["doc_sync"])
 
+    # -- enforcement ------------------------------------------------------
+    @property
+    def enforcement(self) -> dict:
+        return dict(self._d["enforcement"])
+
+    def enforcement_mode(self, point: str) -> str:
+        """Gate mode for a point ("pre_commit"/"pre_push"/"ci"); block if unset."""
+        return self._d["enforcement"].get(point, "block")
+
     @property
     def doc_sync_escape_globs(self) -> list:
         return list(self._d["doc_sync_escape_globs"])
@@ -323,6 +338,14 @@ def _validate(data):
         if "docs" in rule:
             _require_str_list(rule["docs"], f'doc_sync["{label}"].docs')
     _require_str_list(data.get("doc_sync_escape_globs", []), "doc_sync_escape_globs")
+
+    enforcement = data.get("enforcement", {})
+    if not isinstance(enforcement, dict):
+        raise ConfigError("enforcement must be a table of point = mode entries.")
+    for point, mode in enforcement.items():
+        if mode not in ("block", "warn", "off"):
+            raise ConfigError(
+                f'enforcement.{point} must be "block", "warn", or "off" (got {mode!r}).')
 
 
 def load_config(start=None) -> Config:

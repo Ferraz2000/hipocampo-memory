@@ -96,6 +96,21 @@ required_docs = []
 # hipocampo/validators/.
 validators = ["doc_links", "feature_doc_sync", "vault_sync"]
 
+# How hard each gate point pushes back when a check fails. The git hooks and CI
+# call `hipocampo.gate`, which reads this (validators always report truthfully).
+# Per point: "block" = fail the operation; "warn" = print findings but don't
+# block; "off" = skip. Defaults keep the historical blocking behavior. A good
+# low-friction setup is warn locally + block in CI (you're never stuck mid-task,
+# but drift still can't merge):
+#   [enforcement]
+#   pre_commit = "warn"
+#   pre_push   = "warn"
+#   ci         = "block"
+[enforcement]
+pre_commit = "block"   # doc-sync gate on `git commit`
+pre_push   = "block"   # preflight on `git push`
+ci         = "block"   # preflight in CI (keep strict as the backstop)
+
 # A changed file matching any of these globs (e.g. a Doc Impact Report) satisfies
 # every doc_sync rule for that commit.
 doc_sync_escape_globs = ["**/doc-impact-reports/**/*.md"]

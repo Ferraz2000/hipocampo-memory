@@ -106,6 +106,27 @@ class LoadConfigTest(unittest.TestCase):
             with self.assertRaises(config.ConfigError):
                 load_config(start=root)
 
+    def test_enforcement_defaults_and_override(self):
+        from hipocampo.config import Config, DEFAULTS, deep_merge
+        cfg = Config(DEFAULTS, Path("/repo"))
+        # Default everywhere is block (backward compatible) including unknown points.
+        self.assertEqual(cfg.enforcement_mode("pre_commit"), "block")
+        self.assertEqual(cfg.enforcement_mode("ci"), "block")
+        self.assertEqual(cfg.enforcement_mode("nonexistent"), "block")
+        merged = deep_merge(DEFAULTS, {"enforcement": {"pre_commit": "warn", "pre_push": "off"}})
+        warned = Config(merged, Path("/repo"))
+        self.assertEqual(warned.enforcement_mode("pre_commit"), "warn")
+        self.assertEqual(warned.enforcement_mode("pre_push"), "off")
+        self.assertEqual(warned.enforcement_mode("ci"), "block")  # untouched
+
+    def test_invalid_enforcement_mode_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / config.CONFIG_FILENAME).write_text(
+                '[enforcement]\npre_commit = "nag"\n', encoding="utf-8")
+            with self.assertRaises(config.ConfigError):
+                load_config(start=root)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,7 +1,8 @@
 # hipocampo — agent-docs CI. Runs the same preflight as the pre-push hook, so
 # documentation/vault drift can't merge. Copy to .github/workflows/ in the
 # target repo. Assumes the hipocampo package is importable (vendored at the repo
-# root or pip-installed).
+# root or pip-installed). Honors [enforcement] ci in brain.config.toml — keep it
+# "block" so CI stays the backstop even when local gates are relaxed to "warn".
 name: agent-docs
 
 on:
@@ -24,4 +25,4 @@ jobs:
           # Map the push event's "before" SHA so feature_doc_sync can diff a push
           # (GitHub Actions exposes it in the event payload, not the default env).
           GITHUB_EVENT_BEFORE: ${{ github.event.before }}
-        run: python3 -m hipocampo.preflight
+        run: python3 -m hipocampo.gate ci

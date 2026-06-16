@@ -146,6 +146,11 @@ respostas, e você evolui pedindo ao agente ("adiciona regra de doc-sync pra
 `src/api/`", "sobe a janela de decay pra 60 dias"). O schema completo, pra
 auditoria ou edição manual: [`brain.config.example.toml`](brain.config.example.toml).
 
+**Não quer o gate te travando?** O enforcement é configurável por ponto
+(`[enforcement]`): `block` (barra), `warn` (mostra os achados, não trava) ou
+`off`. O `brain-scripts-init` pergunta e recomenda **warn local + block no CI** —
+você nunca fica preso no meio da tarefa, mas o drift ainda não entra no merge.
+
 ## Por que isto e não um framework de memória
 
 O estado da arte 2025–2026 convergiu pra **markdown como fonte de verdade + um

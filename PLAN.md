@@ -106,6 +106,21 @@ already cross-agent and the rest had native equivalents:
   it from `AGENTS.md` instead of Claude's auto-loaded `.claude/rules/`.
 - ⚠️ Codex hooks experimental; Gemini key drift `contextFileName`→`context.fileName`.
 
+## Phase 10 — configurable enforcement (block / warn / off)
+
+The doc-sync gate blocked commits/pushes unconditionally; not every workflow is
+100% vibe-code, so the blocking is now a per-point policy in `brain.config.toml`:
+
+- `[enforcement]` with `pre_commit` / `pre_push` / `ci`, each `block` | `warn` |
+  `off`. Defaults `block` everywhere (backward compatible).
+- New `hipocampo/gate.py` is the single policy point: the git hooks + CI call it
+  (not the validators directly), it reads the mode and translates the exit code
+  (`block` propagates, `warn` surfaces then exits 0, `off` skips). Validators stay
+  truthful (used unchanged by `canary`/standalone).
+- `templates/githooks/{pre-commit,pre-push}` + `templates/ci/agent-docs.yml` now
+  invoke `hipocampo.gate`. `brain-scripts-init` asks the level and recommends
+  **warn local + block CI** (never stuck mid-task; drift still can't merge).
+
 ## Script port status (origin → `hipocampo/`)
 
 | Origin script | Generic % | Target | Status |

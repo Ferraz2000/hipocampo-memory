@@ -64,10 +64,16 @@ use:       capture (write-gated) ──▶ knowledge/insights/raw + index + log
            search / challenge / discovery ──▶ search (BM25/FTS5)
            Stop hook ──▶ capture-sweep ──▶ knowledge/_inbox  ──(triage via /capture)──▶ knowledge/
 
-govern:    pre-commit ──▶ feature_doc_sync (blocks sensitive code w/o its doc)
-           pre-push / CI ──▶ preflight (all validators)
+govern:    pre-commit ──▶ gate(pre_commit) ──▶ feature_doc_sync (sensitive code w/o its doc)
+           pre-push / CI ──▶ gate(pre_push|ci) ──▶ preflight (all validators)
            SessionStart ──▶ git-derived briefing (the one sanctioned auto-load)
 ```
+
+The git hooks and CI call `hipocampo.gate`, which reads `[enforcement]` and
+applies the configured mode per point — `block` (fail the op), `warn` (surface
+findings, never block), or `off` (skip). Defaults are `block` everywhere
+(backward compatible); a low-friction setup is `warn` locally + `block` in CI.
+The validators always report truthfully; the gate decides whether that blocks.
 
 ## Design principles
 
