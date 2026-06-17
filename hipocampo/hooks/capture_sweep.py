@@ -28,6 +28,7 @@ from datetime import datetime
 
 from .. import config as _config
 from .. import inbox_decay
+from ..mdutil import iter_md
 from . import project_dir
 
 URL_RE = re.compile(r"https?://[\w\-\.]+(?:/[\w\-\./?=&%#~+]*)?", re.IGNORECASE)
@@ -74,22 +75,13 @@ def norm_url(url):
     return url.lower().rstrip("/).,;]>\"'")
 
 
-def _iter_md(directory):
-    if not directory.is_dir():
-        return
-    for root, _dirs, files in os.walk(directory):
-        for fname in files:
-            if fname.endswith(".md"):
-                yield os.path.join(root, fname)
-
-
 def scan_existing(cfg, exclude_path=None):
     """Returns (captured_urls, inbox_blob) for dedup. Best-effort, stdlib only."""
     inbox = str(cfg.inbox_dir)
     ex = os.path.abspath(exclude_path) if exclude_path else None
     captured = set()
     inbox_parts = []
-    for path in list(_iter_md(cfg.raw_sources_dir)) + list(_iter_md(cfg.knowledge_dir)):
+    for path in list(iter_md(cfg.raw_sources_dir)) + list(iter_md(cfg.knowledge_dir)):
         try:
             with open(path, encoding="utf-8") as fh:
                 text = fh.read()

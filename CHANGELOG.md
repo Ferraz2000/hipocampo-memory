@@ -5,6 +5,31 @@ All notable changes to hipocampo are documented here. The format loosely follows
 [Semantic Versioning](https://semver.org/). For the full design history and phase
 status, see [`PLAN.md`](PLAN.md).
 
+## [Unreleased]
+
+Engineering cleanup closing the minor backlog (items 5–8) from the 2026-06
+quality analysis. Backward compatible; `project_mode`/`team` add config keys that
+already existed in the example file.
+
+### Added
+- `hipocampo/mdutil.py` — one home for the markdown title extractor and the
+  `.md` walker that `search`, `index`, and the capture-sweep hook had each
+  reimplemented. `search.title_of` and `index.extract_title` are kept as
+  re-exports (no API break).
+- `project_mode` / `team` are now first-class config keys (defaults `"existing"`
+  / `false`) with validation — they were documented in `brain.config.example.toml`
+  but missing from `config.py:DEFAULTS` (the exact schema↔code drift the kit
+  exists to prevent).
+- Stdlib `trace`-based coverage report (`python -m hipocampo.tests.coverage_report`,
+  `--fail-under N`) wired as an informational CI job. Zero-dependency.
+- Tests for the previously uncovered modules: `frontmatter`, `preflight`,
+  `canary`, plus `mdutil` and a config-driven generated-dir view test
+  (145 → 182 tests).
+
+### Changed
+- `views.py` reads the generated-mirrors directory name from `[dirs] generated`
+  instead of a hardcoded `"_generated"` literal.
+
 ## [0.9.1]
 
 Bug-fix release from a full quality audit (code + plugin). All four fixes are

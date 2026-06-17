@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 
 from hipocampo import views
-from hipocampo.config import Config, DEFAULTS
+from hipocampo.config import Config, DEFAULTS, deep_merge
 from hipocampo.views import (Note, build_all, execute, iter_dataview_blocks,
                              parse_dql, render)
 
@@ -107,6 +107,23 @@ class MaterializeTest(unittest.TestCase):
             self.assertIn("[x](../insights/technical/x.md)", content)
             self.assertIn("| high |", content)
             self.assertIn("AUTO-GENERATED", content)
+
+    def test_generated_dir_name_comes_from_config(self):
+        # [dirs] generated drives the mirror location — not a hardcoded "_generated".
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ins = root / "docs/brain/insights/technical"
+            ins.mkdir(parents=True)
+            (ins / "x.md").write_text(
+                "---\ntitle: X\nstatus: active\narea: perf\n---\n# X\n", encoding="utf-8")
+            (root / "docs/brain/10-dash.md").write_text(
+                '# Dash\n\n```dataview\nLIST FROM "insights" WHERE status = "active"\n```\n',
+                encoding="utf-8")
+            data = deep_merge(DEFAULTS, {"dirs": {"generated": "_views"}})
+            cfg = Config(data, root)
+            gen_path = next(iter(build_all(cfg)))
+            self.assertIn("/_views/", gen_path.replace("\\", "/"))
+            self.assertNotIn("_generated", gen_path)
 
     def test_iter_blocks_tracks_nearest_heading(self):
         text = ("## First\n```dataview\nLIST\n```\n"
