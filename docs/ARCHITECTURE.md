@@ -75,6 +75,65 @@ findings, never block), or `off` (skip). Defaults are `block` everywhere
 (backward compatible); a low-friction setup is `warn` locally + `block` in CI.
 The validators always report truthfully; the gate decides whether that blocks.
 
+## Retrieval — target state (Phases 11–12, planned)
+
+> **Planned, not yet shipped.** Today: SessionStart briefing + BM25/FTS5 search.
+> This is where semi-automatic capture (Phase 12, Onda 1) and the optional
+> semantic tier (Phase 11, Onda 2) land. One engine, three entry points, markdown
+> always the truth.
+
+```
+  capture (Phase 12): agent drafts @SessionEnd ─▶ human approves ─▶ files note
+                                  │
+                                  ▼
+                vault markdown  (SOURCE OF TRUTH)
+                knowledge/index.md  (pointers, not content)
+                                  │
+                                  │  reindex  (derived, disposable)
+                                  ▼
+                .brain-cache/index.db   (gitignored, rebuildable)
+                  notes_fts  (FTS5 / BM25)         ◀── always
+                  notes_vec  (sqlite-vec / vector) ◀── only if [semantic]
+                                  │
+                                  ▼
+      ┌─────────────  search engine (one path, tier-aware)  ─────────────┐
+      │   query → BM25  +  [vector]  →  RRF fusion  →  ranked pointers     │
+      └────────────────────────────┬─────────────────────────────────────┘
+                                   │  served by 3 entry points
+              ┌────────────────────┼────────────────────┐
+              ▼                    ▼                    ▼
+        1. Preload           2. Recall skill       3. Manual
+        (SessionStart)       (agent, mid-task)     (/search, you)
+        deterministic        agent's own query     on demand
+```
+
+**The engine (one code path, tier-aware).** Every search — whoever triggered it —
+runs the same path: BM25 (FTS5) always; if `[semantic]` is installed the query is
+also embedded (`model2vec`, CPU) and matched against `notes_vec` (`sqlite-vec`),
+and the two rankings fuse via RRF. Empty vec-hits (core, no extra) ⇒ RRF
+degenerates to pure BM25 — no branching, no second code path. The engine returns
+**pointers + excerpts with source metadata**, never bulk content (index-first /
+context-rot defense).
+
+**Three entry points (who triggers):**
+
+| Surface | When | Decides | Size |
+|---|---|---|---|
+| Preload briefing | SessionStart hook | nobody (automatic) | lean (`low-token`) |
+| Recall skill | mid-task | the agent (own query) | only what's needed |
+| Manual `/search` | on demand | you | as asked |
+
+All three call the same engine; only the trigger and the destination (agent
+context vs. your terminal) differ. The `AGENTS.md` router cue is what makes the
+agent actually fire the recall skill ("recall before asking the user about past
+decisions") — the deterministic preload + agent-decided recall split mirrors the
+2026 `PreloadMemoryTool` / `LoadMemoryTool` pattern.
+
+**Tier-invariant.** Same source (markdown), same index (`.brain-cache/index.db`),
+same engine, same three surfaces. The only variable is whether `notes_vec` exists;
+`[semantic]` is a pure additive upgrade — a second hit-list, nothing else — so the
+core still runs headless with zero deps.
+
 ## Design principles
 
 - **Markdown is the source of truth.** Any index/cache (`.brain-cache/`) is
