@@ -121,6 +121,56 @@ The doc-sync gate blocked commits/pushes unconditionally; not every workflow is
   invoke `hipocampo.gate`. `brain-scripts-init` asks the level and recommends
   **warn local + block CI** (never stuck mid-task; drift still can't merge).
 
+## Phase 11 — tiered capabilities (optional dependencies) ⬜ planned
+
+Keep the core stdlib-only; add power as opt-in **extras** so the "runs in any
+container/CI" promise never breaks. Supersedes deferred improvement #7.
+
+**Packaging.** One repo, one package, `[project.optional-dependencies]`:
+
+- core `pip install hipocampo` → zero deps (invariant unchanged).
+- `hipocampo[semantic]` → `sqlite-vec` + `model2vec` + `numpy`.
+- `[graph]` (`graphiti-core`) / `[llm]` (BYO key, no fixed SDK) — documented, not built.
+
+**Invariants.** The core test suite must stay green with **no extra installed**; a
+backend that can't import (or whose SQLite forbids `load_extension`) degrades to
+BM25 — never crashes. Extras are additive, never required. Markdown stays the
+source of truth; vectors live in the disposable `.brain-cache/` index and rebuild
+from `.md` via `reindex`. No daemon: `sqlite-vec` is in-process, `model2vec`
+embeddings are local/CPU.
+
+### Tier `[semantic]` — three pieces, not one
+
+Grounding (2026 market): the field converged on "memory as a tool the agent
+calls" + a small deterministic preload (Google ADK's `LoadMemoryTool` +
+`PreloadMemoryTool` split; AgeMem treats recall as a callable op). Benchmark says
+hybrid BM25+vec ≈ pure vector DB (95.2 vs 96.6 on LongMemEval-S), so an embeddable
+engine beats a server. B is therefore three pieces:
+
+1. **Semantic backend** — `model2vec` static embeddings (CPU, ~30MB model) into a
+   `sqlite-vec` `vec0` table inside the same `.brain-cache/index.db` as FTS5;
+   results fused with the existing RRF. Empty vec-hits ⇒ degenerates to today's
+   BM25, so **one code path serves both tiers**.
+2. **Agent-callable recall skill** — the `LoadMemoryTool` half: the agent composes
+   its own query mid-task and pulls only what it needs (lower-noise than
+   always-inject). The SessionStart briefing stays the small `PreloadMemoryTool`
+   half (keep it `low-token`).
+3. **Router cue in `AGENTS.md`** — the wiring that makes the agent actually fire
+   the recall skill ("before asking the user about past decisions, recall first").
+   hipocampo's router already *is* this surface; B only adds the cue.
+
+Without (2)+(3) the engine only serves manual search — the agent never uses it.
+
+**Cost (honest — why opt-in).** `[semantic]` pulls `numpy` + a model blob + the
+`sqlite-vec` native loadable extension (some Python/SQLite builds disable
+extension loading) — real weight, hence behind the extra. Buys ~+9 pts recall
+(86→95), concentrated in fuzzy/paraphrased queries (preferences 60→83); exact-term
+lookups already ~86% on BM25 alone.
+
+**Depends on capture density.** B's value scales with how full the vault is — pair
+with semi-automatic capture (agent drafts at SessionEnd, human approves) or the
+semantic engine just searches an empty vault.
+
 ## Script port status (origin → `hipocampo/`)
 
 | Origin script | Generic % | Target | Status |
@@ -150,5 +200,5 @@ The doc-sync gate blocked commits/pushes unconditionally; not every workflow is
 - ✅ #5 `/garden` skill — lint/gardener pass (contradictions, stale, orphans, missing links).
 - ✅ #6 `/archive-closed` skill — semantic compaction of terminal insights into an archive index.
 - ✅ #12 recitation guidance folded into `brain-router-init` (re-state the todo at phase boundaries).
-- ⬜ #7 optional local semantic search (FastEmbed + disposable SQLite) — **deferred by design**: breaks the zero-dependency promise; ship as an opt-in add-on later.
+- ⬜ #7 optional local semantic search → **promoted to Phase 11** (tiered extras: `hipocampo[semantic]` = `sqlite-vec` + `model2vec`, three-piece design — backend + recall skill + router cue). Still opt-in to keep the core zero-dep.
 - ✅ Phase 5b: `views.py` (DQL→markdown materialized views) + opt-in `views_fresh` validator (v0.4.0).
