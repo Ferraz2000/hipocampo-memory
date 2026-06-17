@@ -11,7 +11,7 @@ docs rot — in any project, any language.
 > `_inbox/`, and a write-gated pipeline turns them into a curated, auditable
 > `knowledge/` base that lives in your repo and compounds over time.
 
-**Status: v0.9.0 — usable.** 142 tests, CI green, validated end-to-end including a
+**Status: v0.9.1 — usable.** 145 tests, CI green, validated end-to-end including a
 production project as first consumer, plus an opt-in semantic tier verified with
 the deps installed and the kit dogfooding its own memory ([details](PLAN.md)).
 

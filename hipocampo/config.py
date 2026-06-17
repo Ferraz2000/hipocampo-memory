@@ -394,6 +394,24 @@ def _validate(data):
     if "enabled" in sem and not isinstance(sem["enabled"], bool):
         raise ConfigError(f'semantic.enabled must be true or false (got {sem["enabled"]!r}).')
 
+    # Closed-vocabulary and path lists: a bare string here is a common TOML slip
+    # that would be iterated character-by-character downstream (silently wrong).
+    for key in ("areas", "statuses", "active_states", "inactive_statuses"):
+        if key in data:
+            _require_str_list(data[key], key)
+    search = data.get("search", {})
+    if isinstance(search, dict) and "dirs" in search:
+        _require_str_list(search["dirs"], "search.dirs")
+    language = data.get("language")
+    if language is not None and not isinstance(language, str):
+        raise ConfigError(f"language must be a string (got {language!r}).")
+    dirs = data.get("dirs", {})
+    if not isinstance(dirs, dict):
+        raise ConfigError("dirs must be a table of name = path entries.")
+    for name, val in dirs.items():
+        if not isinstance(val, str):
+            raise ConfigError(f"dirs.{name} must be a string path (got {val!r}).")
+
 
 def load_config(start=None) -> Config:
     """Find and load ``brain.config.toml``, merged over :data:`DEFAULTS`.

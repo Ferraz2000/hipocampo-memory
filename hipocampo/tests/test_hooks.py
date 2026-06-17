@@ -7,7 +7,10 @@ import unittest
 from pathlib import Path
 
 from hipocampo.config import Config, DEFAULTS, deep_merge
+import os
+
 from hipocampo.hooks import capture_sweep as cs
+from hipocampo.hooks import ensure_githooks as eg
 from hipocampo.hooks import session_start as ss
 
 
@@ -30,6 +33,17 @@ class PureHelpersTest(unittest.TestCase):
         self.assertIn("[REDACTED]", cs.redact("AWS_SECRET_ACCESS_KEY=AKIA1234567890ABCDEF"))
         self.assertEqual(cs.redact("nothing secret here"), "nothing secret here")
 
+    def test_redact_scrubs_unlabeled_high_entropy_tokens(self):
+        # Tokens pasted without a labeling keyword — the labeled rule misses these.
+        self.assertIn("[REDACTED]", cs.redact("ghp_16C7e42F292c6912E7710c838347Ae178B4a01"))
+        self.assertIn("[REDACTED]", cs.redact("sk-proj-abc123def456ghi789jkl012mnop"))
+        self.assertIn("[REDACTED]", cs.redact("xoxb-12345-abcdefGHIJKLmnop"))
+        self.assertIn("[REDACTED]", cs.redact(
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NSJ9.SflKxwRJSMeKKF2QT4fwpM"))
+        # No false positive on ordinary prose.
+        self.assertEqual(cs.redact("we shipped the feature today"),
+                         "we shipped the feature today")
+
     def test_filter_new_drops_captured_and_pending(self):
         urls = {"https://example.com/a", "https://example.com/b"}
         triggers = [("decided", "we decided to ship"), ("trade-off", "the trade-off is X")]
@@ -38,6 +52,35 @@ class PureHelpersTest(unittest.TestCase):
         new_urls, new_triggers = cs.filter_new(urls, triggers, captured, inbox_blob)
         self.assertEqual(new_urls, {"https://example.com/b"})
         self.assertEqual([t for t, _ in new_triggers], ["trade-off"])
+
+
+class EnsureGithooksTest(unittest.TestCase):
+    """Regression: the SessionStart hook must run without raising (it once shipped
+    a missing `import os` that crashed on every invocation)."""
+
+    def _run_in(self, path):
+        cwd = os.getcwd()
+        os.chdir(path)
+        try:
+            return eg.main()
+        finally:
+            os.chdir(cwd)
+
+    def test_main_is_noop_without_githooks_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(self._run_in(tmp), 0)  # no .githooks → silent no-op, no crash
+
+    def test_main_sets_hookspath_when_githooks_present(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            try:
+                subprocess.run(["git", "init", "-q"], cwd=tmp, check=True)
+            except (FileNotFoundError, subprocess.CalledProcessError):
+                self.skipTest("git not available")
+            (Path(tmp) / ".githooks").mkdir()
+            self.assertEqual(self._run_in(tmp), 0)
+            got = subprocess.run(["git", "config", "core.hooksPath"], cwd=tmp,
+                                 capture_output=True, text=True).stdout.strip()
+            self.assertEqual(got, ".githooks")
 
 
 class ScanTranscriptTest(unittest.TestCase):

@@ -5,6 +5,33 @@ All notable changes to hipocampo are documented here. The format loosely follows
 [Semantic Versioning](https://semver.org/). For the full design history and phase
 status, see [`PLAN.md`](PLAN.md).
 
+## [0.9.1]
+
+Bug-fix release from a full quality audit (code + plugin). All four fixes are
+backward compatible; no config or API changes.
+
+### Fixed
+- **SessionStart hook crash.** `hooks/ensure_githooks` was missing `import os`,
+  so it raised `NameError` on every invocation. Wrapped with `2>/dev/null; exit 0`
+  in `hooks.json`, the session never broke — but `core.hooksPath` was never set, so
+  the doc-sync gate silently never ran in fresh/ephemeral containers (exactly the
+  failure mode the hook exists to prevent). Added `EnsureGithooksTest` (the module
+  had zero coverage — root cause of the crash shipping).
+- **View path corruption.** `views.load_notes` used a blanket `replace(".", "")`
+  that mangled any note path with a dotted directory name (`insights/v1.2/` →
+  `v12`); only the top-level `.` now maps to `""`.
+- **Secret redaction gaps.** `hooks/capture_sweep.redact` now also scrubs unlabeled
+  high-entropy tokens (GitHub PAT, OpenAI `sk-`, Slack `xox*`, JWT) — the labeled
+  rule missed credentials pasted without a keyword.
+- **Config validation gaps.** `config._validate` now type-checks `areas`,
+  `statuses`, `active_states`, `inactive_statuses`, `search.dirs`, `language`, and
+  `dirs`, so a bare-string TOML slip fails fast instead of being iterated
+  character-by-character downstream.
+
+### Docs
+- Added `docs/quality-analysis-2026-06.md` — the full quality audit + a
+  competitive/market comparison (mid-May to mid-June 2026).
+
 ## [0.9.0]
 
 Two new opt-in capabilities (semantic recall + semi-automatic capture), real

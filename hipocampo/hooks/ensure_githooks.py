@@ -7,6 +7,7 @@ acts when a ``.githooks`` directory exists and the config isn't already set.
 Agent-agnostic (Claude Code / Codex / Gemini all run it at session start).
 """
 
+import os
 import subprocess
 import sys
 

@@ -41,6 +41,13 @@ _SECRET_RES = [
     re.compile(r"AKIA[0-9A-Z]{12,16}"),                 # AWS key id (also if snippet-truncated)
     re.compile(r"-----BEGIN[A-Z ]*PRIVATE KEY-----"),
     re.compile(r"(?i)\b[a-z0-9._%+-]+:[^\s/@]{6,}@"),   # user:pass@ in a URL
+    # Unlabeled high-entropy tokens — common shapes pasted without a keyword, so
+    # the labeled rule above misses them. High-precision prefixes (near-zero
+    # false positives) plus the standard JWT triple.
+    re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}"),        # GitHub PAT / OAuth / app tokens
+    re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}"),   # OpenAI secret keys
+    re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}"),      # Slack tokens
+    re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}"),  # JWT
 ]
 
 
