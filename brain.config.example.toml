@@ -119,6 +119,17 @@ hidden_statuses = ["closed", "implemented", "rejected", "superseded", "deferred"
 mode = "inbox"
 max_candidates = 7
 
+# Semantic tier (Phase 11, opt-in). OFF by default — the core stays pure
+# BM25/FTS5 and zero-dependency. When enabled AND the extra is installed
+# (`pip install model2vec sqlite-vec`, or `hipocampo[semantic]`) AND this Python's
+# sqlite3 can load extensions, `recall`/search fuse a local-embedding vector
+# ranking into the existing RRF. Any of those absent ⇒ silent BM25 fallback.
+# `dim` must match the model's output dimension. Kill switch: HIPOCAMPO_SEMANTIC=0.
+[semantic]
+enabled = false
+model = "minishlab/potion-base-8M"
+dim = 256
+
 # How hard each gate point pushes back when a check fails. The git hooks and CI
 # call `hipocampo.gate`, which reads this (validators always report truthfully).
 # Per point: "block" = fail the operation; "warn" = print findings but don't

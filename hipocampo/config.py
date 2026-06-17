@@ -95,6 +95,12 @@ DEFAULTS = {
     #   "off"   — no sweep at all.
     # `max_candidates` caps how many candidates a draft sweep stages (cuts noise).
     "capture": {"auto": {"mode": "inbox", "max_candidates": 7}},
+    # Phase 11 [semantic] tier — opt-in local-embedding search. OFF by default; the
+    # core stays pure BM25/FTS5 and zero-dependency. When `enabled` AND the extra
+    # (`pip install` of model2vec + sqlite-vec) imports AND sqlite can load
+    # extensions, `index.search` fuses a vector ranking into the existing RRF.
+    # Any of those absent ⇒ silent fallback to BM25. `dim` must match the model.
+    "semantic": {"enabled": False, "model": "minishlab/potion-base-8M", "dim": 256},
     "doc_sync": [],
     # A changed file matching any of these globs (e.g. a Doc Impact Report)
     # satisfies every doc_sync rule for that commit.
@@ -264,6 +270,19 @@ class Config:
         """Cap on candidates a draft sweep stages."""
         return int(self._d["capture"]["auto"]["max_candidates"])
 
+    # -- semantic tier (opt-in) ------------------------------------------
+    @property
+    def semantic_enabled(self) -> bool:
+        return bool(self._d["semantic"]["enabled"])
+
+    @property
+    def semantic_model(self) -> str:
+        return self._d["semantic"]["model"]
+
+    @property
+    def semantic_dim(self) -> int:
+        return int(self._d["semantic"]["dim"])
+
     @property
     def views_notes_root(self) -> str:
         return self._d["views"]["notes_root"]
@@ -368,6 +387,12 @@ def _validate(data):
     if auto_mode not in ("inbox", "draft", "off"):
         raise ConfigError(
             f'capture.auto.mode must be "inbox", "draft", or "off" (got {auto_mode!r}).')
+
+    sem = data.get("semantic", {})
+    if not isinstance(sem, dict):
+        raise ConfigError("semantic must be a table.")
+    if "enabled" in sem and not isinstance(sem["enabled"], bool):
+        raise ConfigError(f'semantic.enabled must be true or false (got {sem["enabled"]!r}).')
 
 
 def load_config(start=None) -> Config:

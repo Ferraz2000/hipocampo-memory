@@ -121,7 +121,7 @@ The doc-sync gate blocked commits/pushes unconditionally; not every workflow is
   invoke `hipocampo.gate`. `brain-scripts-init` asks the level and recommends
   **warn local + block CI** (never stuck mid-task; drift still can't merge).
 
-## Phase 11 — tiered capabilities (optional dependencies) ⬜ planned · **Onda 2**
+## Phase 11 — tiered capabilities (optional dependencies) 🟡 foundation landed · **Onda 2**
 
 Keep the core stdlib-only; add power as opt-in **extras** so the "runs in any
 container/CI" promise never breaks. Supersedes deferred improvement #7. **Build
@@ -159,6 +159,19 @@ engine beats a server. B is therefore three pieces:
 3. **Router cue in `AGENTS.md`** — the wiring that makes the agent actually fire
    the recall skill ("before asking the user about past decisions, recall first").
    hipocampo's router already *is* this surface; B only adds the cue.
+
+**Landed (foundation, all three pieces wired; deps gated):**
+- `[semantic]` config (`enabled`/`model`/`dim`, off by default) + `pyproject.toml`
+  declaring the extra (`model2vec` + `sqlite-vec` + `numpy`).
+- `hipocampo/semantic.py` — lazy backend with `available()` (config + deps +
+  `enable_load_extension` + `HIPOCAMPO_SEMANTIC` kill switch), `reindex`/`forget`/
+  `rank`. `index.refresh` mirrors the FTS5 delta into a `vec0` store; `index.search`
+  fuses the vector ranking into RRF when available (empty ⇒ unchanged BM25 path).
+- `recall` skill (piece 2) + the router cue in `brain-router-init` (piece 3).
+- Degradation, fallback, and RRF wiring covered by the stdlib suite (141 → green).
+  **Pending verification:** the `model2vec`/`sqlite-vec` leaf calls (`_embed`, the
+  `vec0` MATCH query) run only with the extra installed — validate end-to-end on a
+  deps machine; consider a `[graph]`/`[llm]` tier only after that.
 
 Without (2)+(3) the engine only serves manual search — the agent never uses it.
 

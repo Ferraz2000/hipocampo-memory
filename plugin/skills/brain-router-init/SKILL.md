@@ -41,7 +41,11 @@ build/test commands, and starter `[[doc_sync]]` rules from the answers.
      area skill → `<vault>/knowledge/index.md` (index-first) for non-trivial work.
    - **Build/test**: the exact commands detected.
    - **Memory**: point to `<vault>/capture.md` (write-gated capture) and
-     `<vault>/context-budget.md` (never bulk-read the vault).
+     `<vault>/context-budget.md` (never bulk-read the vault). **Add the recall
+     cue** so memory actually gets used: *"Before asking the user about a past
+     decision, convention, or rationale, run the `recall` skill (search the vault)
+     first."* This is the `LoadMemoryTool` half — without the cue the agent won't
+     fire it.
    - **Doc-sync**: note that `[[doc_sync]]` rules in `brain.config.toml` gate
      sensitive areas (the pre-commit hook blocks a change lacking its doc).
    - **Global rules**: only concrete, enforceable ones. Include the recitation

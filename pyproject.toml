@@ -1,0 +1,35 @@
+# hipocampo packaging.
+#
+# The core is consumed VENDORED (the `hipocampo/` package is copied into target
+# repos by `brain-scripts-init`) and as a Claude Code plugin / Agent Skills — it
+# is NOT required to be pip-installed to work. This file exists to (a) keep the
+# zero-dependency promise explicit and (b) declare the opt-in [semantic] extra.
+#
+# To enable the Phase 11 semantic tier on a machine:
+#   pip install "hipocampo[semantic]"          # from a checkout of this repo
+#   # or, for the vendored copy, just the deps:
+#   pip install model2vec sqlite-vec numpy
+# Then set `[semantic] enabled = true` in brain.config.toml. Needs a Python whose
+# sqlite3 can load extensions (some macOS system Pythons / minimal images disable it).
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hipocampo"
+version = "0.8.3"            # mirror .claude-plugin/plugin.json
+description = "Persistent, git-versioned, human-gated memory for coding agents."
+readme = "README.md"
+requires-python = ">=3.11"  # stdlib tomllib
+license = { text = "MIT" }
+dependencies = []           # core is stdlib-only — non-negotiable
+
+[project.optional-dependencies]
+# Local-embedding semantic search fused into the existing RRF. Embeddable, no
+# server/daemon: model2vec runs on CPU, sqlite-vec is an in-process extension.
+semantic = ["model2vec>=0.3", "sqlite-vec>=0.1.6", "numpy>=1.26"]
+
+[tool.setuptools.packages.find]
+include = ["hipocampo*"]
+exclude = ["hipocampo.tests*"]

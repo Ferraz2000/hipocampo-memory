@@ -101,11 +101,11 @@ delete the folders and it's gone.
 
 ## The full toolbox
 
-20 skills, grouped — **you don't memorize these; the agent picks them from what
+21 skills, grouped — **you don't memorize these; the agent picks them from what
 you say.** Adopt incrementally:
 
 - **Setup (once):** `brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`.
-- **Daily:** `capture`, `search`, `low-token` (lean mode).
+- **Daily:** `capture`, `search`, `recall` (agent pulls memory mid-task), `low-token` (lean mode).
 - **Thinking:** `challenge` (confront a decision with past reversals), `discovery`, `spec`, `discover-standards`.
 - **Insight lifecycle:** `from-roadmap` → `promote` → `implement` / `execute-insight` → `weekly` / `postmortem` / `audit`.
 - **Maintenance:** `garden`, `archive-closed` (+ the `normalize` fixer and the `canary` self-test).
@@ -116,7 +116,7 @@ by `preflight`.
 
 ## Cross-agent support
 
-One kit, thin per-agent adapters. The portable core (the 20 SKILL.md skills, the
+One kit, thin per-agent adapters. The portable core (the 21 SKILL.md skills, the
 `AGENTS.md` router, the zero-dep Python package, git hooks + CI) runs anywhere;
 the session automations are wired to each agent's native hook system.
 
