@@ -10,7 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SKILLS_DIR = REPO_ROOT / "plugin" / "skills"
 EXPECTED_SKILLS = {
     "brain-init", "brain-router-init", "brain-scripts-init", "brain-update",
-    "capture", "search", "audit", "discovery", "spec",
+    "capture", "search", "recall", "audit", "discovery", "spec",
     "challenge", "discover-standards", "garden", "archive-closed",
     "execute-insight", "from-roadmap", "implement", "promote",
     "weekly", "postmortem", "low-token",

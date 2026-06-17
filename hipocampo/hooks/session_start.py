@@ -5,15 +5,23 @@ The source is the real repo state (current branch, work ahead of the base
 branch, recent merges, pending inbox sweeps), so it never goes stale — the one
 sanctioned automatic context load (see context-budget.md). Cross-platform
 (pure Python), config-driven (base branch), and capped so it can't blow the
-budget. Never blocks; prints the briefing to stdout for Claude Code to add to
-context.
+budget. Never blocks.
+
+Output formats (all three agents accept additionalContext at session start):
+  --format plain  (default) raw briefing on stdout — Claude Code adds it as
+                  context; Codex injects stdout as a developer message too.
+  --format json   {"hookSpecificOutput": {"hookEventName": "SessionStart",
+                  "additionalContext": <briefing>}} — required by Gemini CLI,
+                  also accepted by Claude Code and Codex.
 """
 
-import os
+import argparse
+import json
 import subprocess
 import sys
 
 from .. import config as _config
+from . import project_dir
 
 _CAP = 8000  # keep well under Claude Code's ~10k inline threshold
 
@@ -67,21 +75,44 @@ def build_briefing(cfg):
     if inbox.is_dir():
         sweeps = sorted(p.name for p in inbox.glob("*.md"))
         if sweeps:
-            lines.append(f"## Pending inbox sweeps ({len(sweeps)}) — triage via /registra")
+            lines.append(f"## Pending inbox sweeps ({len(sweeps)}) — triage via /capture")
             lines += [f"- {s}" for s in sweeps[:10]]
             lines.append("")
 
+    # Draft-mode (Phase 12) candidates staged in the disposable cache — surface
+    # the reminder so the human reviews before they're lost to a cache wipe.
+    pending = cfg.cache_dir / "pending-capture.md"
+    if pending.is_file():
+        rel = pending.relative_to(cfg.repo_root).as_posix()
+        lines.append("## Pending capture — review via /capture --review")
+        lines.append(f"- candidates staged in `{rel}` (not yet in the vault)")
+        lines.append("")
+
     text = "\n".join(lines).rstrip() + "\n"
-    return text[:_CAP]
+    if len(text) <= _CAP:
+        return text
+    # Truncate on a line boundary so we never emit half a markdown line.
+    return text[:_CAP].rsplit("\n", 1)[0] + "\n"
+
+
+def _emit(text, fmt):
+    """Render the briefing in the requested output envelope."""
+    if fmt == "json":
+        return json.dumps({"hookSpecificOutput": {
+            "hookEventName": "SessionStart", "additionalContext": text}})
+    return text
 
 
 def main(argv=None):
     # Deliberately do NOT read stdin: a blocking json.load() can hang the hook
     # until the SessionStart timeout, which fails the boot in some containers.
     # The payload is unused; not reading it is safe (the writer just gets SIGPIPE).
+    ap = argparse.ArgumentParser(add_help=False)
+    ap.add_argument("--format", choices=("plain", "json"), default="plain")
+    args, _ = ap.parse_known_args(sys.argv[1:] if argv is None else argv)
     try:
-        cfg = _config.load_config(start=os.environ.get("CLAUDE_PROJECT_DIR"))
-        sys.stdout.write(build_briefing(cfg))
+        cfg = _config.load_config(start=project_dir())
+        sys.stdout.write(_emit(build_briefing(cfg), args.format))
     except Exception:
         pass
     return 0

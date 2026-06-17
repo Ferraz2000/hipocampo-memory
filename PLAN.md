@@ -46,7 +46,7 @@ Hybrid, one git repo as source:
 | 1 | Foundation: repo skeleton, config loader, first working slice (inbox_decay) + tests | ✅ done |
 | 2 | Retrieval layer: `search` (pure BM25) + `index` (FTS5 + RRF graph fusion), config-driven, with tests | ✅ done |
 | 3 | Governance: `vault.py` page model + validators (`doc_links`, `feature_doc_sync` via config `doc_sync`, `vault_sync`) + config-driven `preflight` + git-hook/CI templates | ✅ done (DQL→markdown views deferred to optional 5b) |
-| 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`registra`, `discovery`, `spec`, `busca`) + hooks (SessionStart briefing, Stop capture-sweep) + plugin/marketplace | ✅ done |
+| 4 | Generator skills (`brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`) + workflow skills (`capture`, `discovery`, `spec`, `search`) + hooks (SessionStart briefing, Stop capture-sweep) + plugin/marketplace | ✅ done |
 | 5 | Vault templates + limiter docs (`capture.md`, `context-budget.md`, `README.md`, `knowledge/index.md`, `log.md`, note templates) — **bilingual EN + pt-BR** | ✅ done |
 | 6 | Improvements from research (below) as incremental PRs | ✅ done (#7 deferred by design) |
 | 7 | Dogfood: Go repo (mechanical, 8/8) + Node repo (live agent-walkthrough of the corrected skills, all green) — found & fixed real prose/hook gaps (v0.2.1). Origin-project-as-consumer still pending (production, on owner confirmation) | 🟡 dogfood done; migration pending |
@@ -83,6 +83,163 @@ Hybrid, one git repo as source:
   (idempotent; without it the doc-sync gate silently never runs in fresh/web
   containers). Wired first in plugin hooks.json.
 
+## Phase 9 — real cross-agent (Codex + Gemini)
+
+Research (primary sources, late 2025/early 2026) confirmed the portable core was
+already cross-agent and the rest had native equivalents:
+
+- **Skills** are read natively by all three CLIs (Claude Code, Codex
+  `.agents/skills`, Gemini `.gemini/skills`) — `npx skills` is just an installer,
+  no wrappers/MCP.
+- **Router** `AGENTS.md`: Codex auto-discovers; Gemini needs `context.fileName`;
+  Claude keeps the `CLAUDE.md → @AGENTS.md` bridge.
+- **Hooks**: Codex (`SessionStart`/`Stop`) and Gemini (`SessionStart`/`SessionEnd`)
+  both ship full hook frameworks with `additionalContext` injection and
+  `transcript_path`. Ported the two automations natively:
+  - `session_start --format json` emits `hookSpecificOutput.additionalContext`
+    (accepted by all three; plain stdout kept as default/Claude path).
+  - `capture_sweep` reads each agent's transcript shape (Gemini `parts`, Claude/
+    Codex `content`, `message`-wrapped) and tolerates Codex's unstable format;
+    skips Gemini `reason == "clear"`.
+  - New `templates/hooks/{codex,gemini}/` wiring; `brain-scripts-init` installs it.
+- **Persona** path is config-driven (`[memory] persona_file`); Codex/Gemini point
+  it from `AGENTS.md` instead of Claude's auto-loaded `.claude/rules/`.
+- ⚠️ Codex hooks experimental; Gemini key drift `contextFileName`→`context.fileName`.
+
+## Phase 10 — configurable enforcement (block / warn / off)
+
+The doc-sync gate blocked commits/pushes unconditionally; not every workflow is
+100% vibe-code, so the blocking is now a per-point policy in `brain.config.toml`:
+
+- `[enforcement]` with `pre_commit` / `pre_push` / `ci`, each `block` | `warn` |
+  `off`. Defaults `block` everywhere (backward compatible).
+- New `hipocampo/gate.py` is the single policy point: the git hooks + CI call it
+  (not the validators directly), it reads the mode and translates the exit code
+  (`block` propagates, `warn` surfaces then exits 0, `off` skips). Validators stay
+  truthful (used unchanged by `canary`/standalone).
+- `templates/githooks/{pre-commit,pre-push}` + `templates/ci/agent-docs.yml` now
+  invoke `hipocampo.gate`. `brain-scripts-init` asks the level and recommends
+  **warn local + block CI** (never stuck mid-task; drift still can't merge).
+
+## Phase 11 — tiered capabilities (optional dependencies) 🟡 foundation landed · **Onda 2**
+
+Keep the core stdlib-only; add power as opt-in **extras** so the "runs in any
+container/CI" promise never breaks. Supersedes deferred improvement #7. **Build
+after Phase 12** — semantic recall over an empty vault is wasted; fill it first.
+
+**Packaging.** One repo, one package, `[project.optional-dependencies]`:
+
+- core `pip install hipocampo` → zero deps (invariant unchanged).
+- `hipocampo[semantic]` → `sqlite-vec` + `model2vec` + `numpy`.
+- `[graph]` (`graphiti-core`) / `[llm]` (BYO key, no fixed SDK) — documented, not built.
+
+**Invariants.** The core test suite must stay green with **no extra installed**; a
+backend that can't import (or whose SQLite forbids `load_extension`) degrades to
+BM25 — never crashes. Extras are additive, never required. Markdown stays the
+source of truth; vectors live in the disposable `.brain-cache/` index and rebuild
+from `.md` via `reindex`. No daemon: `sqlite-vec` is in-process, `model2vec`
+embeddings are local/CPU.
+
+### Tier `[semantic]` — three pieces, not one
+
+Grounding (2026 market): the field converged on "memory as a tool the agent
+calls" + a small deterministic preload (Google ADK's `LoadMemoryTool` +
+`PreloadMemoryTool` split; AgeMem treats recall as a callable op). Benchmark says
+hybrid BM25+vec ≈ pure vector DB (95.2 vs 96.6 on LongMemEval-S), so an embeddable
+engine beats a server. B is therefore three pieces:
+
+1. **Semantic backend** — `model2vec` static embeddings (CPU, ~30MB model) into a
+   `sqlite-vec` `vec0` table inside the same `.brain-cache/index.db` as FTS5;
+   results fused with the existing RRF. Empty vec-hits ⇒ degenerates to today's
+   BM25, so **one code path serves both tiers**.
+2. **Agent-callable recall skill** — the `LoadMemoryTool` half: the agent composes
+   its own query mid-task and pulls only what it needs (lower-noise than
+   always-inject). The SessionStart briefing stays the small `PreloadMemoryTool`
+   half (keep it `low-token`).
+3. **Router cue in `AGENTS.md`** — the wiring that makes the agent actually fire
+   the recall skill ("before asking the user about past decisions, recall first").
+   hipocampo's router already *is* this surface; B only adds the cue.
+
+**Landed (foundation, all three pieces wired; deps gated):**
+- `[semantic]` config (`enabled`/`model`/`dim`, off by default) + `pyproject.toml`
+  declaring the extra (`model2vec` + `sqlite-vec` + `numpy`).
+- `hipocampo/semantic.py` — lazy backend with `available()` (config + deps +
+  `enable_load_extension` + `HIPOCAMPO_SEMANTIC` kill switch), `reindex`/`forget`/
+  `rank`. `index.refresh` mirrors the FTS5 delta into a `vec0` store; `index.search`
+  fuses the vector ranking into RRF when available (empty ⇒ unchanged BM25 path).
+- `recall` skill (piece 2) + the router cue in `brain-router-init` (piece 3).
+- Degradation, fallback, and RRF wiring covered by the stdlib suite (142 → green).
+- **Verified end-to-end** (dogfood): with the extra installed, a `SemanticEndToEndTest`
+  embeds notes, builds the `vec0` store, and confirms a paraphrase query
+  (`"session expiry auto logout"`) surfaces a note phrased as "token TTL / logged
+  out automatically" — no shared keywords, pure semantic win. The self-test
+  `skipUnless` the extra is present, so the repo validates its own leaf calls
+  (`_embed`, `vec0` MATCH) wherever the deps exist and skips cleanly otherwise.
+
+**Next (optional):** a `[graph]` (graphiti-core) or `[llm]` (BYO-key consolidation)
+tier — only if a real need shows up; documented, not built.
+
+Without (2)+(3) the engine only serves manual search — the agent never uses it.
+
+**Cost (honest — why opt-in).** `[semantic]` pulls `numpy` + a model blob + the
+`sqlite-vec` native loadable extension (some Python/SQLite builds disable
+extension loading) — real weight, hence behind the extra. Buys ~+9 pts recall
+(86→95), concentrated in fuzzy/paraphrased queries (preferences 60→83); exact-term
+lookups already ~86% on BM25 alone.
+
+**Depends on capture density.** B's value scales with how full the vault is — pair
+with semi-automatic capture (agent drafts at SessionEnd, human approves) or the
+semantic engine just searches an empty vault.
+
+## Phase 12 — semi-automatic capture 🟡 in progress · **Onda 1 (build first)**
+
+Closes the one real hole in the human-write-gate model: 100% manual `/capture`
+leaves the vault sparse (nobody remembers to file), and an empty vault makes
+Phase 11's recall worthless. Fix: the agent **drafts**, the human **approves** —
+keep the gate, kill the emptiness. Grounded in 2026 "proactive memory extraction"
+(extract what's worth keeping; don't summarize everything).
+
+**Flow:**
+
+1. **SessionEnd hook** → agent scans the session and writes capture **candidates**
+   (decisions, learnings, gotchas) to `.brain-cache/pending-capture.md`. Never
+   touches the vault — staging is disposable. Evolves the shipped `capture_sweep`
+   hook (already reads each agent's transcript), so no new machinery.
+2. **SessionStart** (or `/capture --review`) → show candidates; human accepts
+   (enter), edits, or drops each. Safe default: nothing reaches the vault without
+   a yes.
+3. **Approved** → markdown notes in the vault (git-versioned), area/status
+   vocabulary from `brain.config.toml`. Dropped → gone.
+
+**Config** (`brain.config.toml`):
+
+```toml
+[capture.auto]
+mode = "draft"      # draft | off  (never "commit" — human gate is invariant)
+max_candidates = 7  # AgeMem-style: cap noise, discard near-duplicates
+```
+
+**Invariants:**
+
+- Nothing enters durable memory without human approval (the differentiator holds).
+- Core, stdlib-only: SessionEnd hook + staging file + the existing `/capture`.
+  Zero dependency — reuses the `capture_sweep` hook already shipped.
+- Pairs with Phase 11: Onda 1 fills the vault, Onda 2 makes it findable by concept.
+
+**Landed:**
+- *Increment 1* — `capture_sweep` branches on `[capture.auto] mode` (`inbox`
+  legacy default | `draft` | `off`). `draft` stages checkbox candidates in the
+  disposable `.brain-cache/pending-capture.md` (never the vault), dedups per
+  session; the SessionStart briefing surfaces them; `/capture --review` triages.
+  `brain-scripts-init` recommends `draft`. Also fixed the unloadable example config.
+- *Increment 2* — agent-reasoned review: the staging file records a `transcript:`
+  pointer and frames the regex hits as **signals**, not final wording; `/capture
+  --review` now reads the real session and drafts proper notes (proactive
+  extraction) instead of filing raw snippets, approved in one human pass.
+
+Onda 1 is functionally complete (mechanical signal + agent-reasoned, human-gated
+review). Tests green (131). Onda 2 (Phase 11) is next.
+
 ## Script port status (origin → `hipocampo/`)
 
 | Origin script | Generic % | Target | Status |
@@ -112,5 +269,5 @@ Hybrid, one git repo as source:
 - ✅ #5 `/garden` skill — lint/gardener pass (contradictions, stale, orphans, missing links).
 - ✅ #6 `/archive-closed` skill — semantic compaction of terminal insights into an archive index.
 - ✅ #12 recitation guidance folded into `brain-router-init` (re-state the todo at phase boundaries).
-- ⬜ #7 optional local semantic search (FastEmbed + disposable SQLite) — **deferred by design**: breaks the zero-dependency promise; ship as an opt-in add-on later.
+- ⬜ #7 optional local semantic search → **promoted to Phase 11** (tiered extras: `hipocampo[semantic]` = `sqlite-vec` + `model2vec`, three-piece design — backend + recall skill + router cue). Still opt-in to keep the core zero-dep.
 - ✅ Phase 5b: `views.py` (DQL→markdown materialized views) + opt-in `views_fresh` validator (v0.4.0).

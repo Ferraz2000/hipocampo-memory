@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 # hipocampo pre-push — run every configured validator (mirrors CI).
-# If it passes, the push is safe. Requires the hipocampo package importable.
+# Whether a failure BLOCKS the push depends on [enforcement] pre_push in
+# brain.config.toml: "block" (default), "warn" (surface, don't block), or "off".
+# Requires the hipocampo package importable.
 PY=$(command -v python3 || command -v python) || { echo "hipocampo: python not found on PATH" >&2; exit 1; }
-exec "$PY" -m hipocampo.preflight
+exec "$PY" -m hipocampo.gate pre-push

@@ -45,6 +45,10 @@ DEFAULTS = {
     "active_states": ["ready", "in-progress"],
     "inactive_statuses": ["rejected", "closed", "discarded", "superseded", "implemented"],
     "area_aliases": {},
+    # Where persona/preference captures land. Claude Code auto-loads
+    # .claude/rules/USER.md; other agents (Codex/Gemini) read it via a pointer in
+    # AGENTS.md — set this to a router-referenced path there (e.g. "<vault>/USER.md").
+    "memory": {"persona_file": ".claude/rules/USER.md"},
     "inbox": {"decay_days": 30, "sweep_type": "capture-sweep"},
     "search": {
         "dirs": ["knowledge", "insights", "specs", "raw/sources"],
@@ -62,6 +66,12 @@ DEFAULTS = {
     "capture_internal_hosts": ["localhost", "127.0.0.1"],
     "required_docs": [],
     "validators": ["doc_links", "feature_doc_sync", "vault_sync"],
+    # How hard each gate point pushes back. Per point: "block" (fail the op),
+    # "warn" (surface findings, never block), or "off" (skip). Defaults preserve
+    # the historical blocking behavior; brain-scripts-init can relax local gates
+    # (e.g. warn) while keeping CI strict. The git hooks/CI call `hipocampo.gate`,
+    # which reads these — validators themselves always report truthfully.
+    "enforcement": {"pre_commit": "block", "pre_push": "block", "ci": "block"},
     # router_lint is opt-in (not in the default validators): add "router_lint" to
     # validators to enforce a lean AGENTS.md. Lean routers measurably help agents.
     "router": {"file": "AGENTS.md", "max_lines": 120},
@@ -78,6 +88,19 @@ DEFAULTS = {
     # Phrases that mean "the user already triggered capture this session" — the
     # Stop-hook sweep skips when it sees one (agent-agnostic; tune per setup).
     "capture_verbs": ["/capture", "registra isso", "save to the brain"],
+    # Phase 12 semi-automatic capture — where the session-end sweep lands:
+    #   "inbox" — sweep into the vault inbox (legacy default; git-versioned).
+    #   "draft" — stage candidates in the disposable .brain-cache/ for review via
+    #             `/capture --review`; nothing enters the vault without approval.
+    #   "off"   — no sweep at all.
+    # `max_candidates` caps how many candidates a draft sweep stages (cuts noise).
+    "capture": {"auto": {"mode": "inbox", "max_candidates": 7}},
+    # Phase 11 [semantic] tier — opt-in local-embedding search. OFF by default; the
+    # core stays pure BM25/FTS5 and zero-dependency. When `enabled` AND the extra
+    # (`pip install` of model2vec + sqlite-vec) imports AND sqlite can load
+    # extensions, `index.search` fuses a vector ranking into the existing RRF.
+    # Any of those absent ⇒ silent fallback to BM25. `dim` must match the model.
+    "semantic": {"enabled": False, "model": "minishlab/potion-base-8M", "dim": 256},
     "doc_sync": [],
     # A changed file matching any of these globs (e.g. a Doc Impact Report)
     # satisfies every doc_sync rule for that commit.
@@ -191,6 +214,12 @@ class Config:
     def area_aliases(self) -> dict:
         return dict(self._d["area_aliases"])
 
+    # -- memory -----------------------------------------------------------
+    @property
+    def persona_file(self) -> str:
+        """Repo-relative path where persona/preference captures land."""
+        return self._d["memory"]["persona_file"]
+
     # -- inbox ------------------------------------------------------------
     @property
     def inbox_decay_days(self) -> int:
@@ -232,6 +261,29 @@ class Config:
         return list(self._d["capture_verbs"])
 
     @property
+    def capture_auto_mode(self) -> str:
+        """Where the session-end sweep lands: "inbox" | "draft" | "off"."""
+        return self._d["capture"]["auto"]["mode"]
+
+    @property
+    def capture_auto_max(self) -> int:
+        """Cap on candidates a draft sweep stages."""
+        return int(self._d["capture"]["auto"]["max_candidates"])
+
+    # -- semantic tier (opt-in) ------------------------------------------
+    @property
+    def semantic_enabled(self) -> bool:
+        return bool(self._d["semantic"]["enabled"])
+
+    @property
+    def semantic_model(self) -> str:
+        return self._d["semantic"]["model"]
+
+    @property
+    def semantic_dim(self) -> int:
+        return int(self._d["semantic"]["dim"])
+
+    @property
     def views_notes_root(self) -> str:
         return self._d["views"]["notes_root"]
 
@@ -270,6 +322,15 @@ class Config:
     @property
     def doc_sync(self) -> list:
         return list(self._d["doc_sync"])
+
+    # -- enforcement ------------------------------------------------------
+    @property
+    def enforcement(self) -> dict:
+        return dict(self._d["enforcement"])
+
+    def enforcement_mode(self, point: str) -> str:
+        """Gate mode for a point ("pre_commit"/"pre_push"/"ci"); block if unset."""
+        return self._d["enforcement"].get(point, "block")
 
     @property
     def doc_sync_escape_globs(self) -> list:
@@ -313,6 +374,25 @@ def _validate(data):
         if "docs" in rule:
             _require_str_list(rule["docs"], f'doc_sync["{label}"].docs')
     _require_str_list(data.get("doc_sync_escape_globs", []), "doc_sync_escape_globs")
+
+    enforcement = data.get("enforcement", {})
+    if not isinstance(enforcement, dict):
+        raise ConfigError("enforcement must be a table of point = mode entries.")
+    for point, mode in enforcement.items():
+        if mode not in ("block", "warn", "off"):
+            raise ConfigError(
+                f'enforcement.{point} must be "block", "warn", or "off" (got {mode!r}).')
+
+    auto_mode = data.get("capture", {}).get("auto", {}).get("mode", "inbox")
+    if auto_mode not in ("inbox", "draft", "off"):
+        raise ConfigError(
+            f'capture.auto.mode must be "inbox", "draft", or "off" (got {auto_mode!r}).')
+
+    sem = data.get("semantic", {})
+    if not isinstance(sem, dict):
+        raise ConfigError("semantic must be a table.")
+    if "enabled" in sem and not isinstance(sem["enabled"], bool):
+        raise ConfigError(f'semantic.enabled must be true or false (got {sem["enabled"]!r}).')
 
 
 def load_config(start=None) -> Config:

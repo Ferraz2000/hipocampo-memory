@@ -48,6 +48,12 @@ def broken_doc_links(repo_root, exclude_dirs=None):
                     target = m.group(1).strip()
                     if not target or target.startswith(("http://", "https://", "mailto:", "#")):
                         continue
+                    # Skip placeholder links in docs/skill templates, e.g.
+                    # `[<slug>](<area>/<slug>.md)` or `[<title>](<path>)`. Angle
+                    # brackets can't appear in a real relative path, so a target
+                    # carrying one is an illustrative format string, not a link.
+                    if "<" in target or ">" in target:
+                        continue
                     path_only = target.split("#", 1)[0]
                     if not path_only:
                         continue

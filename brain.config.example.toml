@@ -6,6 +6,12 @@
 # hipocampo/config.py — keep the two in sync).
 #
 # Read with: hipocampo.config.load_config()  (walks up from cwd to find this file)
+#
+# TOML note: bare top-level keys (the ones not under a [section]) MUST come before
+# the first [table] header below — otherwise TOML absorbs them into that table.
+# That's why all the scalars/lists are grouped up top and every [table] is last.
+
+# ── Top-level scalars & lists ────────────────────────────────────────────────
 
 # Where the vault lives, relative to the repo root. Neutral default; set to
 # "docs/obsidian" if you open it as an Obsidian vault, or anything you like.
@@ -23,16 +29,6 @@ team = false                # true → PR-workflow rules + protected-branch sugg
 # doc-sync diff ranges.
 base_branch = "main"
 
-# Subdirectories. inbox/insights/raw_sources/generated/knowledge are relative to
-# vault_root; cache is relative to the repo root (it's disposable, gitignored).
-[dirs]
-knowledge   = "knowledge"
-inbox       = "knowledge/_inbox"
-insights    = "insights"
-raw_sources = "raw/sources"
-generated   = "_generated"
-cache       = ".brain-cache"
-
 # Closed vocabulary for knowledge/insight `area:` frontmatter. Tune per project.
 areas = ["meta", "architecture", "product", "testing"]
 
@@ -46,23 +42,6 @@ statuses = [
 # mean an item is done/dead (used to detect roadmap/insight drift).
 active_states     = ["ready", "in-progress"]
 inactive_statuses = ["rejected", "closed", "discarded", "superseded", "implemented"]
-
-# Optional: map common misspellings/aliases to a canonical area (drift fixer).
-# Example: { tech = "technical", arch = "architecture" }
-[area_aliases]
-
-# Inbox decay: auto-sweeps of this `type:` older than decay_days, still in triage
-# and not pinned, are expired. Markdown stays the source of truth; only the
-# kit's own ephemeral sweeps are ever removed.
-[inbox]
-decay_days = 30
-sweep_type = "capture-sweep"
-
-# Search (BM25, and the optional FTS5 index): which vault subdirs to scan, and
-# which terminal statuses to hide from default results (--all overrides).
-[search]
-dirs = ["knowledge", "insights", "specs", "raw/sources"]
-hidden_statuses = ["closed", "implemented", "rejected", "superseded", "deferred"]
 
 # Phrases that should trigger a proactive "capture this?" offer in chat. The
 # write-gate still applies — the agent offers, the human approves.
@@ -93,27 +72,80 @@ validators = ["doc_links", "feature_doc_sync", "vault_sync"]
 # every doc_sync rule for that commit.
 doc_sync_escape_globs = ["**/doc-impact-reports/**/*.md"]
 
+# ── Tables (everything below lives under a [section]) ─────────────────────────
+
+# Subdirectories. inbox/insights/raw_sources/generated/knowledge are relative to
+# vault_root; cache is relative to the repo root (it's disposable, gitignored).
+[dirs]
+knowledge   = "knowledge"
+inbox       = "knowledge/_inbox"
+insights    = "insights"
+raw_sources = "raw/sources"
+generated   = "_generated"
+cache       = ".brain-cache"
+
+# Optional: map common misspellings/aliases to a canonical area (drift fixer).
+# Example: { tech = "technical", arch = "architecture" }
+[area_aliases]
+
+# Where persona/preference captures land (and what the capture-sweep points at).
+# Claude Code auto-loads `.claude/rules/USER.md` every session; Codex/Gemini have
+# no path-auto-load, so set this to a file your AGENTS.md router references
+# (e.g. "docs/brain/USER.md") so it's pulled in cross-agent.
+[memory]
+persona_file = ".claude/rules/USER.md"
+
+# Inbox decay: auto-sweeps of this `type:` older than decay_days, still in triage
+# and not pinned, are expired. Markdown stays the source of truth; only the
+# kit's own ephemeral sweeps are ever removed.
+[inbox]
+decay_days = 30
+sweep_type = "capture-sweep"
+
+# Search (BM25, and the optional FTS5 index): which vault subdirs to scan, and
+# which terminal statuses to hide from default results (--all overrides).
+[search]
+dirs = ["knowledge", "insights", "specs", "raw/sources"]
+hidden_statuses = ["closed", "implemented", "rejected", "superseded", "deferred"]
+
+# Semi-automatic capture (Phase 12): where the session-end sweep lands.
+#   "inbox" — sweep into the vault inbox (legacy default; git-versioned).
+#   "draft" — stage candidates in the disposable .brain-cache/ for `/capture
+#             --review`; nothing reaches the vault without human approval. The
+#             agent drafts, you approve — keeps the write-gate, fills the vault.
+#   "off"   — no sweep.
+# New setups: brain-scripts-init recommends "draft". max_candidates caps noise.
+[capture.auto]
+mode = "inbox"
+max_candidates = 7
+
+# Semantic tier (Phase 11, opt-in). OFF by default — the core stays pure
+# BM25/FTS5 and zero-dependency. When enabled AND the extra is installed
+# (`pip install model2vec sqlite-vec`, or `hipocampo[semantic]`) AND this Python's
+# sqlite3 can load extensions, `recall`/search fuse a local-embedding vector
+# ranking into the existing RRF. Any of those absent ⇒ silent BM25 fallback.
+# `dim` must match the model's output dimension. Kill switch: HIPOCAMPO_SEMANTIC=0.
+[semantic]
+enabled = false
+model = "minishlab/potion-base-8M"
+dim = 256
+
+# How hard each gate point pushes back when a check fails. The git hooks and CI
+# call `hipocampo.gate`, which reads this (validators always report truthfully).
+# Per point: "block" = fail the operation; "warn" = print findings but don't
+# block; "off" = skip. Defaults keep the historical blocking behavior. A good
+# low-friction setup is warn locally + block in CI (you're never stuck mid-task,
+# but drift still can't merge): pre_commit = "warn", pre_push = "warn", ci = "block".
+[enforcement]
+pre_commit = "block"   # doc-sync gate on `git commit`
+pre_push   = "block"   # preflight on `git push`
+ci         = "block"   # preflight in CI (keep strict as the backstop)
+
 # Router lint (opt-in: add "router_lint" to validators above). Keeps AGENTS.md
 # lean — long, vague instruction files measurably tax agent reasoning.
 [router]
 file = "AGENTS.md"
 max_lines = 120
-
-# Doc-sync rules (Phase 3): when a commit stages a file matching `paths`, it must
-# also stage at least one doc matching `docs` in the same commit, or the commit
-# is blocked. This is the "behavior change must update its doc" gate.
-#
-# Replaces the origin project's hardcoded AREA_RULES. Add one table per rule:
-#
-# [[doc_sync]]
-# name  = "public-contract"
-# paths = ["src/contracts/**"]
-# docs  = ["docs/architecture/contracts.md"]
-#
-# [[doc_sync]]
-# name  = "persistence"
-# paths = ["src/**/migrations/**", "src/**/repositories/**"]
-# docs  = ["docs/architecture/persistence.md"]
 
 # Materialized views (python -m hipocampo.views): which vault-relative dir feeds
 # the dataview queries, and the header label for the note-link column.
@@ -130,3 +162,21 @@ skills_dirs = []
 catalog_doc = ""
 required_files = []
 required_files_max_lines = 80
+
+# Doc-sync rules (Phase 3): when a commit stages a file matching `paths`, it must
+# also stage at least one doc matching `docs` in the same commit, or the commit
+# is blocked. This is the "behavior change must update its doc" gate.
+#
+# Replaces the origin project's hardcoded AREA_RULES. Add one table per rule
+# (these are commented out — uncomment and edit, keeping them LAST in the file
+# since [[doc_sync]] is an array-of-tables):
+#
+# [[doc_sync]]
+# name  = "public-contract"
+# paths = ["src/contracts/**"]
+# docs  = ["docs/architecture/contracts.md"]
+#
+# [[doc_sync]]
+# name  = "persistence"
+# paths = ["src/**/migrations/**", "src/**/repositories/**"]
+# docs  = ["docs/architecture/persistence.md"]

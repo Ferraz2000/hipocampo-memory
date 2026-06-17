@@ -41,23 +41,39 @@ build/test commands, and starter `[[doc_sync]]` rules from the answers.
      area skill → `<vault>/knowledge/index.md` (index-first) for non-trivial work.
    - **Build/test**: the exact commands detected.
    - **Memory**: point to `<vault>/capture.md` (write-gated capture) and
-     `<vault>/context-budget.md` (never bulk-read the vault).
+     `<vault>/context-budget.md` (never bulk-read the vault). **Add the recall
+     cue** so memory actually gets used: *"Before asking the user about a past
+     decision, convention, or rationale, run the `recall` skill (search the vault)
+     first."* This is the `LoadMemoryTool` half — without the cue the agent won't
+     fire it.
    - **Doc-sync**: note that `[[doc_sync]]` rules in `brain.config.toml` gate
      sensitive areas (the pre-commit hook blocks a change lacking its doc).
    - **Global rules**: only concrete, enforceable ones. Include the recitation
      rule for long tasks: re-state the working todo at each phase boundary to fight
      lost-in-the-middle (Manus).
-4. **Write `CLAUDE.md`** containing just `@AGENTS.md` (the official Claude Code
-   bridge), unless one already exists — then append the import if missing.
-5. **Seed `.claude/rules/USER.md`** (persona/preferences, the 4th memory layer) if
-   absent — a short template with empty Communication / Pet-peeves / Conventions
-   sections. Committed + auto-loaded every session.
-6. **Path-scoped rules (optional):** for rules that only apply to one area, write
-   them as `.claude/rules/<name>.md` with a `paths:` glob frontmatter instead of
-   bloating `AGENTS.md` — they load only when the agent touches matching files
-   (index-first by path, native to Claude Code).
-7. **Cross-agent (optional):** offer to mirror skills into `.agents/skills` (Codex)
-   and set Gemini's `contextFileName` to `AGENTS.md`.
+4. **Make the router load on every selected agent** (`AGENTS.md` is the single
+   source; each agent reaches it differently):
+   - **Claude Code** → write `CLAUDE.md` containing just `@AGENTS.md` (the official
+     bridge), unless one exists — then append the import if missing.
+   - **Codex** → nothing to do; Codex auto-discovers `AGENTS.md`.
+   - **Gemini** → set `context.fileName` to `["AGENTS.md", "GEMINI.md"]` in
+     `.gemini/settings.json` (older Gemini builds use the flat `contextFileName`
+     key — write the nested form, mention the old one). This is the one manual
+     router step Gemini needs.
+5. **Seed the persona file** (persona/preferences, the 4th memory layer) if absent
+   — a short template with empty Communication / Pet-peeves / Conventions sections.
+   Path is `[memory] persona_file` in `brain.config.toml` (default
+   `.claude/rules/USER.md`). On Claude Code it auto-loads; on Codex/Gemini set it
+   to a router-referenced path (e.g. `<vault>/USER.md`) and link it from `AGENTS.md`
+   so it's pulled in.
+6. **Path-scoped rules (Claude Code only, optional):** for rules that apply to one
+   area, write them as `.claude/rules/<name>.md` with a `paths:` glob frontmatter
+   instead of bloating `AGENTS.md` — they load only when the agent touches matching
+   files (native to Claude Code; Codex/Gemini have no equivalent, so fold such
+   rules into `AGENTS.md` there).
+7. **Skills are native everywhere:** Codex reads `.agents/skills/`, Gemini reads
+   `.gemini/skills/`; `npx skills add` (or `brain-scripts-init`) places them. No
+   wrappers needed.
 
 ## Rules
 

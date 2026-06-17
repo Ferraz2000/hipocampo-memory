@@ -11,17 +11,21 @@ docs rot — in any project, any language.
 > `_inbox/`, and a write-gated pipeline turns them into a curated, auditable
 > `knowledge/` base that lives in your repo and compounds over time.
 
-**Status: v0.8.3 — usable.** 97 tests, CI green, validated end-to-end five times
-including a production project as first consumer ([details](PLAN.md)).
+**Status: v0.9.0 — usable.** 142 tests, CI green, validated end-to-end including a
+production project as first consumer, plus an opt-in semantic tier verified with
+the deps installed and the kit dogfooding its own memory ([details](PLAN.md)).
 
 ## Quickstart (2 minutes)
 
 ```sh
 /plugin marketplace add Ferraz2000/hipocampo-memory     # Claude Code (skills + hooks)
 /plugin install hipocampo@hipocampo
-# or cross-agent (Claude Code / Codex / Gemini), skills only:
+# or cross-agent (Claude Code / Codex / Gemini) — skills install natively:
 npx skills add Ferraz2000/hipocampo-memory
 ```
+
+On Codex and Gemini the skills are read natively (no wrapper); `brain-scripts-init`
+also wires the session hooks for them. See [Cross-agent support](#cross-agent-support).
 
 Then say `/brain-init` in your project. **The agent does the setup** — it asks
 you three questions (language, where the vault lives, initial areas), generates
@@ -98,17 +102,39 @@ delete the folders and it's gone.
 
 ## The full toolbox
 
-20 skills, grouped — **you don't memorize these; the agent picks them from what
+21 skills, grouped — **you don't memorize these; the agent picks them from what
 you say.** Adopt incrementally:
 
 - **Setup (once):** `brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`.
-- **Daily:** `capture`, `search`, `low-token` (lean mode).
+- **Daily:** `capture`, `search`, `recall` (agent pulls memory mid-task), `low-token` (lean mode).
 - **Thinking:** `challenge` (confront a decision with past reversals), `discovery`, `spec`, `discover-standards`.
 - **Insight lifecycle:** `from-roadmap` → `promote` → `implement` / `execute-insight` → `weekly` / `postmortem` / `audit`.
 - **Maintenance:** `garden`, `archive-closed` (+ the `normalize` fixer and the `canary` self-test).
 
-Plus two hooks (SessionStart git briefing; Stop capture-sweep with secret
-redaction) and six config-driven validators run by `preflight`.
+Plus two session hooks (a session-start git briefing; a session-end capture-sweep
+with secret redaction) — wired per agent — and six config-driven validators run
+by `preflight`.
+
+## Cross-agent support
+
+One kit, thin per-agent adapters. The portable core (the 21 SKILL.md skills, the
+`AGENTS.md` router, the zero-dep Python package, git hooks + CI) runs anywhere;
+the session automations are wired to each agent's native hook system.
+
+| Capability | Claude Code | Codex CLI | Gemini CLI |
+|------------|-------------|-----------|------------|
+| Skills (SKILL.md) | native | native (`.agents/skills`) | native (`.gemini/skills`) |
+| Router (`AGENTS.md`) | via `CLAUDE.md → @AGENTS.md` | auto-discovered | set `context.fileName` in `.gemini/settings.json` |
+| Session-start briefing | `SessionStart` hook | `SessionStart` hook | `SessionStart` hook |
+| Session-end capture-sweep | `Stop` hook | `Stop` hook | `SessionEnd` hook |
+| Persona memory | `.claude/rules/USER.md` (auto-load) | file referenced from `AGENTS.md` | file referenced from `AGENTS.md` |
+| Path-scoped rules | native (`.claude/rules/*.md` `paths:`) | fold into `AGENTS.md` | fold into `AGENTS.md` |
+| Doc-sync gate, search, validators | ✅ (vendored Python) | ✅ | ✅ |
+
+Notes: Codex hooks are **experimental** (the transcript format isn't stable — the
+sweep degrades gracefully). Gemini's router key is `context.fileName` (older
+builds: `contextFileName`). The persona path is configurable via
+`[memory] persona_file` in `brain.config.toml`.
 
 ## Configuration
 
@@ -117,6 +143,11 @@ Everything project-specific lives in **`brain.config.toml`** at the repo root.
 and you evolve it by asking the agent ("add a doc-sync rule for `src/api/`",
 "raise the decay window to 60 days"). The full schema, for auditing or manual
 edits: [`brain.config.example.toml`](brain.config.example.toml).
+
+**Don't want the gate blocking you?** Enforcement is configurable per point
+(`[enforcement]`): `block` (fail), `warn` (surface findings, never block), or
+`off`. `brain-scripts-init` asks and recommends **warn locally + block in CI** —
+you're never stuck mid-task, but drift still can't merge.
 
 ## Why this and not a memory framework
 

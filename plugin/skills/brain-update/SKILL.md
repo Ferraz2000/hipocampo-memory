@@ -24,6 +24,7 @@ current version. Never touch the vault (`docs/brain/` etc.) or `brain.config.tom
 
 ## Rules
 
-- Never modify vault content, `brain.config.toml`, or `.claude/rules/USER.md` —
-  those are the user's, not the kit's.
+- Never modify vault content, `brain.config.toml`, the persona file
+  (`[memory] persona_file`, e.g. `.claude/rules/USER.md`), or any agent's hook
+  wiring (`.codex/`, `.gemini/settings.json`) — those are the user's, not the kit's.
 - Conventional Commit the update (`chore(hipocampo): bump vendored kit to vX.Y.Z`).

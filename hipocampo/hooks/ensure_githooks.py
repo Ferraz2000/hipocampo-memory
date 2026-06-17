@@ -4,15 +4,17 @@
 Web/ephemeral containers lose local git config; without this, the doc-sync
 pre-commit gate silently never runs. Idempotent, silent, never blocks: only
 acts when a ``.githooks`` directory exists and the config isn't already set.
+Agent-agnostic (Claude Code / Codex / Gemini all run it at session start).
 """
 
-import os
 import subprocess
 import sys
 
+from . import project_dir
+
 
 def main(argv=None):
-    root = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    root = project_dir()
     hooks_dir = os.path.join(root, ".githooks")
     if not os.path.isdir(hooks_dir):
         return 0

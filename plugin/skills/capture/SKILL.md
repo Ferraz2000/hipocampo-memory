@@ -1,6 +1,6 @@
 ---
 name: capture
-description: Capture the current conversation into durable, git-versioned memory (source / concept / contract / proposal / persona) with a human write-gate. Use when the user says "/capture", "capture this", "save to the brain", or pt-BR phrases like "registra isso" / "salva no brain", "remember this decision", or accepts a proactive capture offer.
+description: Capture the current conversation into durable, git-versioned memory (source / concept / contract / proposal / persona) with a human write-gate. Use when the user says "/capture", "capture this", "save to the brain", or pt-BR phrases like "registra isso" / "salva no brain", "remember this decision", accepts a proactive capture offer, or runs "/capture --review" to triage staged draft candidates.
 ---
 
 # capture — capture chat into durable knowledge
@@ -8,6 +8,31 @@ description: Capture the current conversation into durable, git-versioned memory
 Implements the capture protocol (`<vault>/capture.md`). Triggered by the explicit
 verb or by the user accepting a proactive offer. The human curates by talking; you
 do the bookkeeping.
+
+## `--review` — triage draft-mode candidates (agent-reasoned)
+
+When invoked as `/capture --review` (semi-automatic capture, `capture.auto.mode =
+draft`): read the staging file `<cache>/pending-capture.md` (cache dir from
+`[dirs] cache`, default `.brain-cache/`). It holds, per session, regex-detected
+**signals** and a `> transcript: <path>` pointer — **disposable, not yet in the
+vault**.
+
+Don't just file the raw snippets — **reason over the session** (proactive
+extraction, not verbatim regex hits):
+
+1. **Get context.** If the `transcript` path still exists, read it for the full
+   session; otherwise work from the staged snippets + the current conversation.
+2. **Draft proper candidates** — for each genuinely durable item, a real title +
+   one-line hook + the actual decision/lesson, deduped. Drop noise the regex
+   over-captured; add anything worth keeping the regex missed.
+3. **Present them together** and let the human accept / edit / drop each in one
+   pass (the write-gate is theirs — don't ask file-by-file).
+4. **File accepted ones** via the normal capture flow below (classify → file →
+   index → log).
+5. When done, **delete `pending-capture.md`** (disposable staging, not memory).
+
+Review while the session is fresh so the transcript is still available. If the
+staging file is absent, say so — nothing to review.
 
 ## Task
 
@@ -24,7 +49,8 @@ Capture what the user marked (or `$ARGUMENTS`):
      a doc-sync change (the `feature_doc_sync` gate applies).
    - **Proposal** → `<vault>/insights/<area>/<slug>.md` from `template-insight.md`.
    - **Persona/preference** (how to work with the user, not a project fact) →
-     append to `.claude/rules/USER.md` (compact; perishable claims carry `[as of YYYY-MM]`).
+     append to the persona file (`[memory] persona_file` in `brain.config.toml`,
+     default `.claude/rules/USER.md`; compact; perishable claims carry `[as of YYYY-MM]`).
 2. **Cite the source** in `sources:` (path to `raw/` or a URL); set `provenance`
    (`extracted` | `inferred` | `ambiguous`).
 3. **If you wrote to `knowledge/<area>/`**, add a one-line entry under that area in

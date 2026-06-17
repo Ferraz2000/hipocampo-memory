@@ -54,6 +54,12 @@ listings that point at this repo's marketplace — additive reach, no code chang
 
 ## Cross-agent note
 
-`npx skills add` already installs the skills into Claude Code, Codex
-(`.agents/skills`), and Gemini (`.gemini/skills`). No extra publishing step is
-needed for those agents.
+`npx skills add` installs the skills natively into Claude Code, Codex
+(`.agents/skills`), and Gemini (`.gemini/skills`) — all three read the SKILL.md
+format directly, no wrapper. No extra publishing step is needed for those agents.
+
+The session hooks (briefing + capture-sweep) are not carried by the Claude Code
+plugin manifest, so on Codex/Gemini they're wired by `brain-scripts-init` from
+`templates/hooks/{codex,gemini}/` into the agent's own hook config
+(`.codex/hooks.json` / `.gemini/settings.json`). See the
+[cross-agent matrix](README.md#cross-agent-support).

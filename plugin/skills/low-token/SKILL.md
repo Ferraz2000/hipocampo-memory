@@ -32,4 +32,5 @@ otherwise; staying silent just delays the failure to commit time).
   unclear requirements), stop and say so — don't stretch lean mode over work that
   needs real context.
 - Capture-sweep still runs at session end (it's a hook); that's fine — it
-  proposes, it doesn't read.
+  journals candidates to the inbox for later triage; it never loads the vault
+  into this task's context.

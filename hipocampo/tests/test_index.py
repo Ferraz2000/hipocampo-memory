@@ -7,6 +7,7 @@ BM25, which test_search covers).
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from hipocampo import index
 from hipocampo.config import Config, DEFAULTS
@@ -94,6 +95,29 @@ class IndexTest(unittest.TestCase):
             hits = index.search("onboarding", cfg=cfg, rrf=True)
             paths = [h[0] for h in hits]
             self.assertTrue(any(p.endswith("knowledge/b.md") for p in paths))
+
+    def test_semantic_ranking_is_fused_when_available(self):
+        """Wire test for the [semantic] tier: a note that does NOT match the query
+        lexically still surfaces when the (mocked) vector ranking returns it. Proves
+        the fusion seam without needing the real embedding deps."""
+        from hipocampo import semantic
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, kn = self._vault(tmp)
+            (kn / "a.md").write_text("onboarding flow", encoding="utf-8")
+            (kn / "b.md").write_text("zzz unrelated lexical tokens", encoding="utf-8")
+            sem_path = f"{cfg.vault_rel}/knowledge/b.md"
+            with mock.patch.object(semantic, "available", return_value=True), \
+                 mock.patch.object(semantic, "rank", return_value=[sem_path]):
+                paths = [h[0] for h in index.search("onboarding", cfg=cfg, rrf=True)]
+            self.assertTrue(any(p.endswith("knowledge/b.md") for p in paths))
+
+    def test_semantic_unavailable_leaves_search_unchanged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg, kn = self._vault(tmp)
+            (kn / "a.md").write_text("onboarding flow", encoding="utf-8")
+            (kn / "b.md").write_text("zzz unrelated lexical tokens", encoding="utf-8")
+            hits = index.search("onboarding", cfg=cfg)   # tier off by default
+            self.assertTrue(hits[0][0].endswith("knowledge/a.md"))
 
 
 if __name__ == "__main__":

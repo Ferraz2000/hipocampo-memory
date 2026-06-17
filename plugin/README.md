@@ -16,8 +16,11 @@ plugin/
 /plugin install hipocampo@hipocampo
 ```
 
-The skills also work cross-agent (Codex `.agents/skills`, Gemini `.gemini/skills`)
-via `npx skills add Ferraz2000/hipocampo-memory`.
+The skills are read natively cross-agent (Codex `.agents/skills`, Gemini
+`.gemini/skills`) via `npx skills add Ferraz2000/hipocampo-memory`. The session
+hooks are wired per agent from `templates/hooks/` by `brain-scripts-init` (Codex
+`.codex/hooks.json`, Gemini `.gemini/settings.json`) — see the
+[cross-agent matrix](../README.md#cross-agent-support).
 
 ## Hooks and the python package
 

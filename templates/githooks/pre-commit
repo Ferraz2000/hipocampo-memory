@@ -1,9 +1,11 @@
 #!/usr/bin/env sh
 # hipocampo pre-commit — doc-sync gate on the staged diff.
 #
-# Blocks the commit if a file matching a [[doc_sync]] rule in brain.config.toml
-# is staged without one of that rule's docs in the same commit (or a Doc Impact
-# Report). Requires the hipocampo package importable (vendored at the repo root
-# or pip-installed). Enable hooks with:  git config core.hooksPath .githooks
+# Runs the doc-sync check (a file matching a [[doc_sync]] rule staged without one
+# of that rule's docs in the same commit, or a Doc Impact Report). Whether a
+# violation BLOCKS depends on [enforcement] pre_commit in brain.config.toml:
+# "block" (default), "warn" (surface, don't block), or "off". Requires the
+# hipocampo package importable (vendored at the repo root or pip-installed).
+# Enable hooks with:  git config core.hooksPath .githooks
 PY=$(command -v python3 || command -v python) || { echo "hipocampo: python not found on PATH" >&2; exit 1; }
-exec "$PY" -m hipocampo.validators.feature_doc_sync --staged
+exec "$PY" -m hipocampo.gate pre-commit

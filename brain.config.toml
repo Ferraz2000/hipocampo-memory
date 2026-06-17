@@ -1,0 +1,24 @@
+# hipocampo configuration for hipocampo itself — the kit dogfoods its own memory.
+# Mirrors brain.config.example.toml; see that file for the full schema + comments.
+# Bare top-level keys come first, then [tables] (TOML absorbs bare keys into the
+# preceding table otherwise).
+
+vault_root = "docs/brain"
+language = "en"
+project_mode = "existing"
+team = false
+base_branch = "main"
+
+areas = ["meta", "architecture", "product", "testing"]
+
+# Semi-automatic capture: agent drafts at session end, human approves via review.
+[capture.auto]
+mode = "draft"
+max_candidates = 7
+
+# Semantic tier: verified working in this repo; degrades to BM25 where the extra
+# isn't installed (CI, other machines), so committing enabled=true is safe.
+[semantic]
+enabled = true
+model = "minishlab/potion-base-8M"
+dim = 256

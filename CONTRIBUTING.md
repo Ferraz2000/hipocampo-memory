@@ -40,6 +40,7 @@ hipocampo/                 # the python package (zero-dep, stdlib only)
   search.py / index.py     # BM25 + optional FTS5/RRF
   views.py                 # dataview DQL -> static markdown mirrors
   normalize.py / canary.py / inbox_decay.py / preflight.py
+  gate.py                  # enforcement layer (block/warn/off) the hooks+CI call
   validators/              # doc_links, feature_doc_sync, vault_sync,
                            # views_fresh, router_lint, catalog_sync
   hooks/                   # session_start, capture_sweep, ensure_githooks

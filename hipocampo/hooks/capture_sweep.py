@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""Stop hook: sweep the session transcript for un-captured candidates (durable
-decisions, lessons, external sources) and write a sweep into the vault inbox for
-later triage. Never blocks.
+"""Session-end hook: sweep the session transcript for un-captured candidates
+(durable decisions, lessons, external sources) and write a sweep into the vault
+inbox for later triage. Never blocks.
 
 Implements the sleep-time-consolidation pattern: the agent's session leaves a
-journal the human later triages via /registra. Everything project-specific
+journal the human later triages via /capture. Everything project-specific
 (triggers, internal hosts, inbox path, sweep type) comes from brain.config.toml.
 
-Stop-hook stdin JSON: {"transcript_path", "session_id", "stop_hook_active"}.
+Wired as Claude Code `Stop`, Codex `Stop`, or Gemini `SessionEnd` — all pass a
+`transcript_path` on stdin. Stdin JSON (fields vary by agent, all optional):
+{"transcript_path", "session_id"/"sessionId", "stop_hook_active", "reason"}.
 
 Behavior:
-- Skip if stop_hook_active (avoid loops) or if /registra was invoked this session.
+- Skip on stop_hook_active (Claude re-entrancy) or reason=="clear" (Gemini), or
+  if /capture was invoked this session.
 - Skip if a sweep file already exists for this session.
 - Detect configured triggers (user-side and agent-side) + external URLs.
 - Dedup against what's already captured (raw/sources, knowledge, pending inbox).
@@ -25,6 +28,7 @@ from datetime import datetime
 
 from .. import config as _config
 from .. import inbox_decay
+from . import project_dir
 
 URL_RE = re.compile(r"https?://[\w\-\.]+(?:/[\w\-\./?=&%#~+]*)?", re.IGNORECASE)
 
@@ -103,27 +107,48 @@ def filter_new(urls, triggers_hit, captured_urls, inbox_blob):
     return new_urls, new_triggers
 
 
-def _extract(ev):
-    """(text, role) from a transcript event across common shapes."""
-    content = ev.get("content") or ev.get("message", {}).get("content")
+def _content_text(content):
+    """Flatten a content value across agent transcript shapes (str, or a list of
+    parts each carrying `text`/`content`). Gemini uses `parts: [{text}]`; Claude
+    uses `content: [{type:text, text}]`; Codex varies (format is not stable)."""
+    if isinstance(content, str):
+        return content
     if isinstance(content, list):
-        text = " ".join(c.get("text", "") for c in content if isinstance(c, dict))
-    elif isinstance(content, str):
-        text = content
-    else:
-        text = ""
-    role = (ev.get("type") or ev.get("role")
-            or (ev.get("message") or {}).get("role") or "").lower()
+        out = []
+        for c in content:
+            if isinstance(c, str):
+                out.append(c)
+            elif isinstance(c, dict):
+                out.append(c.get("text") or c.get("content") or "")
+        return " ".join(t for t in out if t)
+    return ""
+
+
+def _extract(ev):
+    """(text, role) from a transcript event across Claude/Codex/Gemini shapes."""
+    msg = ev.get("message") if isinstance(ev.get("message"), dict) else {}
+    # `parts` is Gemini's container; `content` is Claude/Codex's.
+    content = (ev.get("content") if ev.get("content") is not None
+               else msg.get("content") if msg.get("content") is not None
+               else ev.get("parts") if ev.get("parts") is not None
+               else msg.get("parts"))
+    text = _content_text(content)
+    role = (ev.get("role") or msg.get("role") or ev.get("type") or "").lower()
+    # Normalize agent-specific role labels onto user/assistant.
+    if role in ("human",):
+        role = "user"
+    elif role in ("model", "agent", "ai"):
+        role = "assistant"
     return text, role
 
 
 def scan_transcript(transcript_path, cfg):
-    """Returns (triggers_hit, urls, registra_invoked)."""
+    """Returns (triggers_hit, urls, capture_invoked)."""
     user_re = _trigger_re(cfg.capture_triggers)
     agent_re = _trigger_re(cfg.capture_agent_triggers)
     triggers_hit = []
     urls = set()
-    registra_invoked = False
+    capture_invoked = False
     with open(transcript_path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -138,7 +163,7 @@ def scan_transcript(transcript_path, cfg):
                 continue
             low = text.lower()
             if any(v.lower() in low for v in cfg.capture_verbs):
-                registra_invoked = True
+                capture_invoked = True
             pat = user_re if role == "user" else (agent_re if role == "assistant" else None)
             if pat is not None:
                 for m in pat.finditer(text):
@@ -147,10 +172,11 @@ def scan_transcript(transcript_path, cfg):
             for u in URL_RE.findall(text):
                 if is_external(u, cfg.capture_internal_hosts):
                     urls.add(redact(u))
-    return triggers_hit, urls, registra_invoked
+    return triggers_hit, urls, capture_invoked
 
 
-def _render_sweep(date, short, session_id, sweep_type, triggers_hit, urls):
+def _render_sweep(date, short, session_id, sweep_type, triggers_hit, urls,
+                  persona_file=".claude/rules/USER.md"):
     lines = ["---",
              f"title: 'Capture sweep — session {short} ({date})'",
              f"type: {sweep_type}",
@@ -162,11 +188,11 @@ def _render_sweep(date, short, session_id, sweep_type, triggers_hit, urls):
              "---", "",
              f"# Automatic sweep — {date} ({short})", "",
              "> Generated by the capture-sweep Stop hook. The session ended without",
-             "> `/registra`, but capture candidates were detected. Triage each:",
+             "> `/capture`, but capture candidates were detected. Triage each:",
              ">",
              "> - **Durable concept** → move to `knowledge/<area>/<slug>.md`",
              "> - **External source** → move to `raw/sources/<date>-<slug>.md`",
-             "> - **Persona/preference** → append to your agent rules file (e.g. `.claude/rules/USER.md`)",
+             f"> - **Persona/preference** → append to your agent rules file (`{persona_file}`)",
              "> - **Not worth it** → delete this file",
              ">",
              "> ⚠ **SECURITY:** secret-shaped strings were auto-redacted (best-effort, not a"
@@ -189,9 +215,71 @@ def _render_sweep(date, short, session_id, sweep_type, triggers_hit, urls):
         lines += [f"- {u}" for u in sorted(urls)[:30]]
         lines.append("")
     lines += ["## Next steps", "",
-              "- [ ] Manual triage (or via `/registra <slug>`).",
+              "- [ ] Manual triage (or via `/capture <slug>`).",
               "- [ ] Delete this sweep after triage.", ""]
     return "\n".join(lines)
+
+
+def _pending_header(persona_file=".claude/rules/USER.md"):
+    """Header for the disposable draft-mode staging file (`.brain-cache/`)."""
+    return "\n".join([
+        "# Pending capture — review, don't commit",
+        "",
+        "> Disposable staging written by the capture-sweep hook (`capture.auto.mode",
+        "> = draft`). Lives in `.brain-cache/` (gitignored) — **nothing here is in",
+        "> durable memory yet.**",
+        ">",
+        "> Triage with `/capture --review`. The bullets below are regex-detected",
+        "> **signals, not the final wording** — read each session's `transcript` for",
+        "> full context and draft proper notes (proactive extraction), then file",
+        "> each (concept → `knowledge/`, source → `raw/sources/`, persona →",
+        f"> `{persona_file}`) or drop it. This file is deleted once triaged.",
+        ">",
+        "> ⚠ Secret-shaped strings were auto-redacted (best-effort). Re-check before filing.",
+        "",
+    ])
+
+
+def _render_pending_block(date, short, triggers_hit, urls, max_candidates=7, transcript=None):
+    """One per-session block of capture candidates as review checkboxes. Records
+    the transcript pointer so `/capture --review` can reason over the real session
+    (fresh-session review; degrades to the snippets if the transcript is gone)."""
+    lines = [f"## Session {short} — {date}", ""]
+    if transcript:
+        lines += [f"> transcript: {transcript}", ""]
+    seen = set()
+    n = 0
+    for trigger, snippet in triggers_hit:
+        key = snippet[:120]
+        if key in seen:
+            continue
+        seen.add(key)
+        lines.append(f"- [ ] **{trigger}**: …{snippet}…")
+        n += 1
+        if n >= max_candidates:
+            break
+    for u in sorted(urls)[:max_candidates]:
+        lines.append(f"- [ ] source: {u}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _write_pending(staging, date, short, session_id, triggers_hit, urls, cfg,
+                   transcript=None):
+    """Append this session's candidates to the disposable staging file. Idempotent
+    per session (re-runs don't duplicate); creates the header once. Never touches
+    the vault — the whole point of draft mode."""
+    block = _render_pending_block(date, short, triggers_hit, urls, cfg.capture_auto_max,
+                                  transcript=transcript)
+    if staging.exists():
+        prior = staging.read_text(encoding="utf-8")
+        if f"session {short}".lower() in prior.lower():
+            return  # already staged for this session
+        staging.write_text(prior.rstrip() + "\n\n" + block + "\n", encoding="utf-8")
+    else:
+        staging.parent.mkdir(parents=True, exist_ok=True)
+        staging.write_text(_pending_header(cfg.persona_file) + "\n" + block + "\n",
+                           encoding="utf-8")
 
 
 def main(argv=None):
@@ -199,48 +287,73 @@ def main(argv=None):
         payload = json.load(sys.stdin)
     except Exception:
         return 0
-    if payload.get("stop_hook_active"):
+    # Claude Code re-entrancy guard; Gemini SessionEnd `reason` (skip context
+    # clears, not genuine session ends). Both absent on agents that don't send them.
+    if payload.get("stop_hook_active") or payload.get("reason") == "clear":
         return 0
 
     transcript_path = payload.get("transcript_path")
-    session_id = payload.get("session_id", "unknown")
+    # session_id field name varies; fall back so the sweep filename still forms.
+    session_id = payload.get("session_id") or payload.get("sessionId") or "unknown"
     if not transcript_path or not os.path.exists(transcript_path):
         return 0
 
     try:
-        cfg = _config.load_config(start=os.environ.get("CLAUDE_PROJECT_DIR"))
+        cfg = _config.load_config(start=project_dir())
     except _config.ConfigError:
-        return 0  # bad config shouldn't break the session's Stop hook
-    cfg.inbox_dir.mkdir(parents=True, exist_ok=True)
+        return 0  # bad config shouldn't break the session-end hook
 
-    try:  # housekeeping: expire stale sweeps
-        removed = inbox_decay.decay(cfg=cfg, apply=True)
-        if removed:
-            print(f"capture-sweep: {len(removed)} stale sweep(s) removed.", file=sys.stderr)
-    except Exception:
-        pass
+    mode = cfg.capture_auto_mode
+    if mode == "off":
+        return 0
 
     date = datetime.now().strftime("%Y-%m-%d")
     short = session_id[:8]
+    staging = cfg.cache_dir / "pending-capture.md"
     out_path = cfg.inbox_dir / f"{date}-sweep-{short}.md"
-    if out_path.exists():
-        return 0
 
-    triggers_hit, urls, registra_invoked = scan_transcript(transcript_path, cfg)
-    if registra_invoked:
+    if mode == "inbox":
+        # Legacy path: sweep into the vault inbox + housekeeping decay. Draft mode
+        # never touches the vault, so neither the mkdir nor the decay run there.
+        cfg.inbox_dir.mkdir(parents=True, exist_ok=True)
+        try:  # housekeeping: expire stale sweeps
+            removed = inbox_decay.decay(cfg=cfg, apply=True)
+            if removed:
+                print(f"capture-sweep: {len(removed)} stale sweep(s) removed.", file=sys.stderr)
+        except Exception:
+            pass
+        if out_path.exists():
+            return 0
+
+    triggers_hit, urls, capture_invoked = scan_transcript(transcript_path, cfg)
+    if capture_invoked:
         return 0
 
     try:
         captured_urls, inbox_blob = scan_existing(cfg, exclude_path=str(out_path))
     except Exception:
         captured_urls, inbox_blob = set(), ""
+    if mode == "draft" and staging.exists():
+        try:  # dedup against candidates already staged but not yet reviewed
+            inbox_blob += " " + staging.read_text(encoding="utf-8").lower()
+        except OSError:
+            pass
     urls, triggers_hit = filter_new(urls, triggers_hit, captured_urls, inbox_blob)
 
     if not triggers_hit and not urls:
         return 0
 
+    if mode == "draft":
+        _write_pending(staging, date, short, session_id, triggers_hit, urls, cfg,
+                       transcript=transcript_path)
+        rel = os.path.relpath(staging, cfg.repo_root)
+        print(f"capture-sweep(draft): {len(triggers_hit)} candidate(s) + {len(urls)} "
+              f"URL(s) staged in {rel} — review via /capture --review", file=sys.stderr)
+        return 0
+
     out_path.write_text(
-        _render_sweep(date, short, session_id, cfg.inbox_sweep_type, triggers_hit, urls),
+        _render_sweep(date, short, session_id, cfg.inbox_sweep_type, triggers_hit, urls,
+                      persona_file=cfg.persona_file),
         encoding="utf-8")
     rel = os.path.relpath(out_path, cfg.repo_root)
     print(f"capture-sweep: {len(triggers_hit)} trigger(s) + {len(urls)} URL(s). Triage in {rel}",

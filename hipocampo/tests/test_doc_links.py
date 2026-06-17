@@ -43,6 +43,15 @@ class DocLinksTest(unittest.TestCase):
             # without excluding it, the broken link is found
             self.assertEqual([t for _, t in broken_doc_links(root)], ["ghost.md"])
 
+    def test_placeholder_link_ignored(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            # Illustrative format strings in skill/templates, not real links.
+            (root / "a.md").write_text(
+                "Format: `- [<slug>](<area>/<slug>.md)` and [<title>](<path>)\n",
+                encoding="utf-8")
+            self.assertEqual(broken_doc_links(root), [])
+
     def test_missing_required_docs(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

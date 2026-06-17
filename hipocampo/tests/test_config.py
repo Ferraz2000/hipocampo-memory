@@ -1,11 +1,14 @@
 """Tests for hipocampo.config — defaults, override merge, path/vocab helpers."""
 
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
 
 from hipocampo import config
 from hipocampo.config import Config, DEFAULTS, deep_merge, load_config
+
+_EXAMPLE = Path(__file__).resolve().parents[2] / "brain.config.example.toml"
 
 
 class DeepMergeTest(unittest.TestCase):
@@ -105,6 +108,75 @@ class LoadConfigTest(unittest.TestCase):
             )
             with self.assertRaises(config.ConfigError):
                 load_config(start=root)
+
+    def test_enforcement_defaults_and_override(self):
+        from hipocampo.config import Config, DEFAULTS, deep_merge
+        cfg = Config(DEFAULTS, Path("/repo"))
+        # Default everywhere is block (backward compatible) including unknown points.
+        self.assertEqual(cfg.enforcement_mode("pre_commit"), "block")
+        self.assertEqual(cfg.enforcement_mode("ci"), "block")
+        self.assertEqual(cfg.enforcement_mode("nonexistent"), "block")
+        merged = deep_merge(DEFAULTS, {"enforcement": {"pre_commit": "warn", "pre_push": "off"}})
+        warned = Config(merged, Path("/repo"))
+        self.assertEqual(warned.enforcement_mode("pre_commit"), "warn")
+        self.assertEqual(warned.enforcement_mode("pre_push"), "off")
+        self.assertEqual(warned.enforcement_mode("ci"), "block")  # untouched
+
+    def test_invalid_enforcement_mode_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / config.CONFIG_FILENAME).write_text(
+                '[enforcement]\npre_commit = "nag"\n', encoding="utf-8")
+            with self.assertRaises(config.ConfigError):
+                load_config(start=root)
+
+    def test_capture_auto_defaults_and_override(self):
+        cfg = Config(DEFAULTS, Path("/repo"))
+        self.assertEqual(cfg.capture_auto_mode, "inbox")   # backward-compatible default
+        self.assertEqual(cfg.capture_auto_max, 7)
+        merged = deep_merge(DEFAULTS, {"capture": {"auto": {"mode": "draft", "max_candidates": 3}}})
+        drafted = Config(merged, Path("/repo"))
+        self.assertEqual(drafted.capture_auto_mode, "draft")
+        self.assertEqual(drafted.capture_auto_max, 3)
+
+    def test_invalid_capture_auto_mode_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / config.CONFIG_FILENAME).write_text(
+                '[capture.auto]\nmode = "automatic"\n', encoding="utf-8")
+            with self.assertRaises(config.ConfigError):
+                load_config(start=root)
+
+
+class ExampleConfigTest(unittest.TestCase):
+    """The shipped example must actually load when copied to brain.config.toml —
+    its header promises 'Copy to brain.config.toml and edit'. TOML absorbs bare
+    keys into the preceding [table], so key ordering matters; this guards it."""
+
+    def test_example_loads_as_real_config(self):
+        self.assertTrue(_EXAMPLE.is_file(), "brain.config.example.toml missing")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copy(_EXAMPLE, root / config.CONFIG_FILENAME)
+            cfg = load_config(start=root)  # must NOT raise
+            # Spot-check keys that were historically absorbed into the wrong table:
+            self.assertEqual(cfg.areas, DEFAULTS["areas"])           # not under [dirs]
+            self.assertEqual(cfg.validators, DEFAULTS["validators"])  # not under [search]
+            self.assertEqual(cfg.doc_sync_escape_globs,              # not under [enforcement]
+                             DEFAULTS["doc_sync_escape_globs"])
+            self.assertEqual(cfg.enforcement_mode("ci"), "block")
+            self.assertEqual(cfg.capture_auto_mode, "inbox")
+
+    def test_example_top_level_keys_match_defaults(self):
+        import tomllib
+        with open(_EXAMPLE, "rb") as fh:
+            data = tomllib.load(fh)
+        # Every example top-level key must be a real DEFAULTS key (catches a key
+        # that silently nested into the wrong table). project_mode/team are
+        # interview-only extras not in DEFAULTS, so allow them.
+        allowed = set(DEFAULTS) | {"project_mode", "team"}
+        self.assertTrue(set(data).issubset(allowed),
+                        f"unexpected top-level keys: {set(data) - allowed}")
 
 
 if __name__ == "__main__":
