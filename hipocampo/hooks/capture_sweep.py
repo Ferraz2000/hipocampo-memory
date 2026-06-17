@@ -112,14 +112,14 @@ def _content_text(content):
     uses `content: [{type:text, text}]`; Codex varies (format is not stable)."""
     if isinstance(content, str):
         return content
+    if isinstance(content, dict):
+        # e.g. {type:text, text:"..."} or {type:tool_result, content:[...]}
+        return _content_text(content.get("text") or content.get("content") or "")
     if isinstance(content, list):
-        out = []
-        for c in content:
-            if isinstance(c, str):
-                out.append(c)
-            elif isinstance(c, dict):
-                out.append(c.get("text") or c.get("content") or "")
-        return " ".join(t for t in out if t)
+        # Recurse: a part may itself carry a nested list (e.g. a Claude
+        # tool_result whose `content` is a list of blocks). Appending that list
+        # straight into the join() raised "expected str instance, list found".
+        return " ".join(t for t in (_content_text(c) for c in content) if t)
     return ""
 
 
