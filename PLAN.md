@@ -121,10 +121,11 @@ The doc-sync gate blocked commits/pushes unconditionally; not every workflow is
   invoke `hipocampo.gate`. `brain-scripts-init` asks the level and recommends
   **warn local + block CI** (never stuck mid-task; drift still can't merge).
 
-## Phase 11 — tiered capabilities (optional dependencies) ⬜ planned
+## Phase 11 — tiered capabilities (optional dependencies) ⬜ planned · **Onda 2**
 
 Keep the core stdlib-only; add power as opt-in **extras** so the "runs in any
-container/CI" promise never breaks. Supersedes deferred improvement #7.
+container/CI" promise never breaks. Supersedes deferred improvement #7. **Build
+after Phase 12** — semantic recall over an empty vault is wasted; fill it first.
 
 **Packaging.** One repo, one package, `[project.optional-dependencies]`:
 
@@ -170,6 +171,41 @@ lookups already ~86% on BM25 alone.
 **Depends on capture density.** B's value scales with how full the vault is — pair
 with semi-automatic capture (agent drafts at SessionEnd, human approves) or the
 semantic engine just searches an empty vault.
+
+## Phase 12 — semi-automatic capture ⬜ planned · **Onda 1 (build first)**
+
+Closes the one real hole in the human-write-gate model: 100% manual `/capture`
+leaves the vault sparse (nobody remembers to file), and an empty vault makes
+Phase 11's recall worthless. Fix: the agent **drafts**, the human **approves** —
+keep the gate, kill the emptiness. Grounded in 2026 "proactive memory extraction"
+(extract what's worth keeping; don't summarize everything).
+
+**Flow:**
+
+1. **SessionEnd hook** → agent scans the session and writes capture **candidates**
+   (decisions, learnings, gotchas) to `.brain-cache/pending-capture.md`. Never
+   touches the vault — staging is disposable. Evolves the shipped `capture_sweep`
+   hook (already reads each agent's transcript), so no new machinery.
+2. **SessionStart** (or `/capture --review`) → show candidates; human accepts
+   (enter), edits, or drops each. Safe default: nothing reaches the vault without
+   a yes.
+3. **Approved** → markdown notes in the vault (git-versioned), area/status
+   vocabulary from `brain.config.toml`. Dropped → gone.
+
+**Config** (`brain.config.toml`):
+
+```toml
+[capture.auto]
+mode = "draft"      # draft | off  (never "commit" — human gate is invariant)
+max_candidates = 7  # AgeMem-style: cap noise, discard near-duplicates
+```
+
+**Invariants:**
+
+- Nothing enters durable memory without human approval (the differentiator holds).
+- Core, stdlib-only: SessionEnd hook + staging file + the existing `/capture`.
+  Zero dependency — reuses the `capture_sweep` hook already shipped.
+- Pairs with Phase 11: Onda 1 fills the vault, Onda 2 makes it findable by concept.
 
 ## Script port status (origin → `hipocampo/`)
 
