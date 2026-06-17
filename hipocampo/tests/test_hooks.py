@@ -124,6 +124,15 @@ class PendingCaptureTest(unittest.TestCase):
         self.assertIn("/capture --review", h)
         self.assertIn("docs/brain/USER.md", h)
         self.assertIn(".brain-cache", h)
+        self.assertIn("transcript", h)   # tells the agent to read the real session
+
+    def test_pending_block_records_transcript_pointer(self):
+        block = cs._render_pending_block("2026-06-17", "abcd1234", [("decided", "x")], set(),
+                                         transcript="/tmp/session-abcd.jsonl")
+        self.assertIn("> transcript: /tmp/session-abcd.jsonl", block)
+        # absent when not provided (degrades to snippet-only review)
+        self.assertNotIn("transcript:", cs._render_pending_block(
+            "2026-06-17", "abcd1234", [("decided", "x")], set()))
 
     def test_write_pending_lands_in_cache_not_vault(self):
         with tempfile.TemporaryDirectory() as tmp:

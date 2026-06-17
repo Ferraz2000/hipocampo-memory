@@ -207,13 +207,19 @@ max_candidates = 7  # AgeMem-style: cap noise, discard near-duplicates
   Zero dependency — reuses the `capture_sweep` hook already shipped.
 - Pairs with Phase 11: Onda 1 fills the vault, Onda 2 makes it findable by concept.
 
-**Landed (increment 1):** `capture_sweep` now branches on `[capture.auto] mode`
-(`inbox` legacy default | `draft` | `off`). `draft` stages checkbox candidates in
-the disposable `.brain-cache/pending-capture.md` (never the vault), dedups per
-session, and the SessionStart briefing surfaces them; `/capture --review` triages.
-`brain-scripts-init` recommends `draft` for new setups. Tests green (127).
-**Next:** richer agent-reasoned drafting (beyond regex triggers) + the review-loop
-ergonomics.
+**Landed:**
+- *Increment 1* — `capture_sweep` branches on `[capture.auto] mode` (`inbox`
+  legacy default | `draft` | `off`). `draft` stages checkbox candidates in the
+  disposable `.brain-cache/pending-capture.md` (never the vault), dedups per
+  session; the SessionStart briefing surfaces them; `/capture --review` triages.
+  `brain-scripts-init` recommends `draft`. Also fixed the unloadable example config.
+- *Increment 2* — agent-reasoned review: the staging file records a `transcript:`
+  pointer and frames the regex hits as **signals**, not final wording; `/capture
+  --review` now reads the real session and drafts proper notes (proactive
+  extraction) instead of filing raw snippets, approved in one human pass.
+
+Onda 1 is functionally complete (mechanical signal + agent-reasoned, human-gated
+review). Tests green (131). Onda 2 (Phase 11) is next.
 
 ## Script port status (origin → `hipocampo/`)
 

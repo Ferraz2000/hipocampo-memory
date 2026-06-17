@@ -227,8 +227,12 @@ def _pending_header(persona_file=".claude/rules/USER.md"):
         "",
         "> Disposable staging written by the capture-sweep hook (`capture.auto.mode",
         "> = draft`). Lives in `.brain-cache/` (gitignored) — **nothing here is in",
-        "> durable memory yet.** Triage with `/capture --review`: for each candidate,",
-        "> file it (concept → `knowledge/`, source → `raw/sources/`, persona →",
+        "> durable memory yet.**",
+        ">",
+        "> Triage with `/capture --review`. The bullets below are regex-detected",
+        "> **signals, not the final wording** — read each session's `transcript` for",
+        "> full context and draft proper notes (proactive extraction), then file",
+        "> each (concept → `knowledge/`, source → `raw/sources/`, persona →",
         f"> `{persona_file}`) or drop it. This file is deleted once triaged.",
         ">",
         "> ⚠ Secret-shaped strings were auto-redacted (best-effort). Re-check before filing.",
@@ -236,9 +240,13 @@ def _pending_header(persona_file=".claude/rules/USER.md"):
     ])
 
 
-def _render_pending_block(date, short, triggers_hit, urls, max_candidates=7):
-    """One per-session block of capture candidates as review checkboxes."""
+def _render_pending_block(date, short, triggers_hit, urls, max_candidates=7, transcript=None):
+    """One per-session block of capture candidates as review checkboxes. Records
+    the transcript pointer so `/capture --review` can reason over the real session
+    (fresh-session review; degrades to the snippets if the transcript is gone)."""
     lines = [f"## Session {short} — {date}", ""]
+    if transcript:
+        lines += [f"> transcript: {transcript}", ""]
     seen = set()
     n = 0
     for trigger, snippet in triggers_hit:
@@ -256,11 +264,13 @@ def _render_pending_block(date, short, triggers_hit, urls, max_candidates=7):
     return "\n".join(lines)
 
 
-def _write_pending(staging, date, short, session_id, triggers_hit, urls, cfg):
+def _write_pending(staging, date, short, session_id, triggers_hit, urls, cfg,
+                   transcript=None):
     """Append this session's candidates to the disposable staging file. Idempotent
     per session (re-runs don't duplicate); creates the header once. Never touches
     the vault — the whole point of draft mode."""
-    block = _render_pending_block(date, short, triggers_hit, urls, cfg.capture_auto_max)
+    block = _render_pending_block(date, short, triggers_hit, urls, cfg.capture_auto_max,
+                                  transcript=transcript)
     if staging.exists():
         prior = staging.read_text(encoding="utf-8")
         if f"session {short}".lower() in prior.lower():
@@ -334,7 +344,8 @@ def main(argv=None):
         return 0
 
     if mode == "draft":
-        _write_pending(staging, date, short, session_id, triggers_hit, urls, cfg)
+        _write_pending(staging, date, short, session_id, triggers_hit, urls, cfg,
+                       transcript=transcript_path)
         rel = os.path.relpath(staging, cfg.repo_root)
         print(f"capture-sweep(draft): {len(triggers_hit)} candidate(s) + {len(urls)} "
               f"URL(s) staged in {rel} — review via /capture --review", file=sys.stderr)

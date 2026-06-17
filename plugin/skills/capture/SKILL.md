@@ -9,19 +9,30 @@ Implements the capture protocol (`<vault>/capture.md`). Triggered by the explici
 verb or by the user accepting a proactive offer. The human curates by talking; you
 do the bookkeeping.
 
-## `--review` — triage draft-mode candidates
+## `--review` — triage draft-mode candidates (agent-reasoned)
 
 When invoked as `/capture --review` (semi-automatic capture, `capture.auto.mode =
 draft`): read the staging file `<cache>/pending-capture.md` (cache dir from
-`[dirs] cache`, default `.brain-cache/`). It holds checkbox candidates the
-session-end sweep staged — **disposable, not yet in the vault**. For each:
+`[dirs] cache`, default `.brain-cache/`). It holds, per session, regex-detected
+**signals** and a `> transcript: <path>` pointer — **disposable, not yet in the
+vault**.
 
-1. Present it; let the human accept, edit, or drop (the write-gate is their call).
-2. For accepted ones, run the normal capture flow below (classify → file → index →
-   log). Dropped ones: just leave unchecked.
-3. When done, **delete `pending-capture.md`** (it's disposable staging, not memory).
+Don't just file the raw snippets — **reason over the session** (proactive
+extraction, not verbatim regex hits):
 
-If the staging file is absent, say so — nothing to review.
+1. **Get context.** If the `transcript` path still exists, read it for the full
+   session; otherwise work from the staged snippets + the current conversation.
+2. **Draft proper candidates** — for each genuinely durable item, a real title +
+   one-line hook + the actual decision/lesson, deduped. Drop noise the regex
+   over-captured; add anything worth keeping the regex missed.
+3. **Present them together** and let the human accept / edit / drop each in one
+   pass (the write-gate is theirs — don't ask file-by-file).
+4. **File accepted ones** via the normal capture flow below (classify → file →
+   index → log).
+5. When done, **delete `pending-capture.md`** (disposable staging, not memory).
+
+Review while the session is fresh so the transcript is still available. If the
+staging file is absent, say so — nothing to review.
 
 ## Task
 
