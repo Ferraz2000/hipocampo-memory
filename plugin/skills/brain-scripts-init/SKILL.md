@@ -78,9 +78,22 @@ installed (hooks/CI need the package importable at the repo root).
      (Claude `.claude/settings.json`; Gemini if available; Codex skip with a note),
      and write the chosen **`[capture.auto] mode`** into `brain.config.toml`
      (omit the block to keep the legacy `"inbox"` default).
-6. **Report** what was vendored + wired (per agent) + the chosen enforcement level
-   + how to add the first doc-sync rule (point to the `[[doc_sync]]` block in
-   `brain.config.toml`).
+6. **Offer the optional semantic tier** (Phase 11 — local-embedding recall fused
+   into search). Ask once: enable it? If **yes**, run the install for them and
+   verify (don't leave it as a TODO):
+   - `python3 -m pip install model2vec sqlite-vec` (the vendored package itself
+     isn't on PyPI, so install the deps directly; `numpy` comes transitively).
+   - Set `[semantic] enabled = true` in `brain.config.toml` (keep `model`/`dim`
+     defaults unless asked).
+   - Verify with `python3 -m hipocampo.semantic` — it prints whether deps import
+     and `enable_load_extension` works. If extension loading is **off** in this
+     Python (some macOS system Pythons / minimal images), say so: the tier will
+     silently fall back to BM25 there until they use an extension-capable Python.
+   If **no**, leave `enabled = false` (the default) — search stays pure BM25, zero
+   install. The choice is fully reversible (flip the flag + install later).
+7. **Report** what was vendored + wired (per agent) + the chosen enforcement level
+   + whether the semantic tier was enabled + how to add the first doc-sync rule
+   (point to the `[[doc_sync]]` block in `brain.config.toml`).
 
 ## Rules
 
