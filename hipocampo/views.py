@@ -443,11 +443,14 @@ def generate_for_source(source_text, notes, notes_root, link_prefix, source_name
     return "\n".join(parts).rstrip() + "\n"
 
 
-def discover_sources(vault):
-    """Markdown files under the vault carrying ```dataview blocks (excl. _generated)."""
+def discover_sources(vault, generated="_generated"):
+    """Markdown files under the vault carrying ```dataview blocks.
+
+    The generated-mirrors directory (``generated``, from ``[dirs] generated``) is
+    skipped so a regenerated view never feeds itself as a source."""
     found = []
     for dirpath, _dirs, files in os.walk(vault):
-        if os.sep + "_generated" in dirpath + os.sep:
+        if os.sep + generated in dirpath + os.sep:
             continue
         for fname in files:
             if not fname.endswith(".md"):
@@ -466,11 +469,12 @@ def build_all(cfg):
     notes_root = cfg.views_notes_root
     notes = load_notes(cfg.vault_root / notes_root)
     link_prefix = "../" + notes_root
+    generated = cfg.generated_dir.name
     out = {}
-    for src in discover_sources(vault):
+    for src in discover_sources(vault, generated):
         with open(src, "r", encoding="utf-8", errors="replace") as fh:
             text = fh.read()
-        gen = os.path.join(vault, "_generated", os.path.basename(src))
+        gen = os.path.join(vault, generated, os.path.basename(src))
         out[gen] = generate_for_source(text, notes, notes_root, link_prefix,
                                        os.path.basename(src), cfg.views_id_label)
     return out

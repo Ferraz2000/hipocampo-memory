@@ -21,6 +21,18 @@ jobs:
       - name: Run tests (stdlib unittest, zero deps)
         run: python -m unittest discover -s hipocampo/tests -v
 
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Stdlib line coverage (zero-dep, trace-based)
+        # Floor set with headroom: `trace` undercounts def/class lines (they run
+        # at import, before tracing) and the [semantic] tier isn't installed here.
+        run: python -m hipocampo.tests.coverage_report --fail-under 45
+
   manifests:
     runs-on: ubuntu-latest
     steps:

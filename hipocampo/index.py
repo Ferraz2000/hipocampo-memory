@@ -28,6 +28,8 @@ from pathlib import Path
 
 from . import config as _config
 from . import semantic as _semantic
+from .mdutil import iter_vault_md
+from .mdutil import title_of as extract_title  # back-compat alias
 
 _SCHEMA_VERSION = 1
 INDEX_BASENAME = "vault-index.sqlite3"
@@ -57,16 +59,6 @@ def fts5_available():
 # --------------------------------------------------------------------------
 # Extraction helpers (pure)
 # --------------------------------------------------------------------------
-
-def extract_title(text, fallback):
-    for line in text.splitlines():
-        line = line.strip()
-        if line.startswith("title:"):
-            return line[len("title:"):].strip().strip("'\"")
-        if line.startswith("# "):
-            return line[2:].strip()
-    return fallback
-
 
 def extract_links(text, note_relpath, repo_root):
     """Repo-relative .md targets referenced by ``note_relpath`` that exist on disk.
@@ -147,18 +139,6 @@ def _ensure_schema(con):
         con.commit()
 
 
-def _iter_md(cfg, dirs):
-    vault = cfg.vault_root
-    for d in dirs:
-        root = vault / d
-        if not root.is_dir():
-            continue
-        for dirpath, _sub, files in os.walk(root):
-            for fname in sorted(files):
-                if fname.endswith(".md"):
-                    yield os.path.join(dirpath, fname)
-
-
 def refresh(con, cfg, dirs=None):
     """Incrementally bring the index in sync with disk. Returns count reindexed."""
     dirs = dirs or cfg.search_dirs
@@ -172,7 +152,7 @@ def refresh(con, cfg, dirs=None):
         row[0]: (row[1], row[2], row[3])
         for row in con.execute("SELECT path, mtime_ns, size, rowid_ref FROM files")
     }
-    for path in _iter_md(cfg, dirs):
+    for path in iter_vault_md(cfg, dirs):
         seen.add(path)
         try:
             st = os.stat(path)

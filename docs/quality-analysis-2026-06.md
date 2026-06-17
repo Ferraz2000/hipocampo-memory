@@ -97,13 +97,16 @@ inteligência opt-in por cima:
    Um `areas = "meta"` (string) passava e depois era iterado caractere-a-caractere — o modo de
    falha que `_require_str_list` foi escrito para prevenir, mas não aplicado nesses campos.
 
-**MENOR (não corrigidos — backlog)**
+**MENOR (resolvidos — follow-up [Unreleased], ver §6)**
 
-5. Lógica de `title`/`_iter_md` triplicada (`search.py`, `index.py`, `capture_sweep.py`).
-6. `"_generated"` hardcoded em `views.py` em vez de `dirs.generated` do config.
-7. `project_mode`/`team` no `brain.config.example.toml` mas ausentes de `config.py:DEFAULTS`.
-8. **Sem medição de coverage** e módulos core sem teste (`frontmatter`, `preflight`, `canary`).
-   Os dois bugs verificados viviam justamente no código sem cobertura.
+5. ✅ Lógica de `title`/`_iter_md` triplicada → extraída para `hipocampo/mdutil.py`
+   (`search`/`index`/`capture_sweep` compartilham; aliases mantidos por compat).
+6. ✅ `"_generated"` hardcoded em `views.py` → agora lê `dirs.generated` do config.
+7. ✅ `project_mode`/`team` → promovidos a chaves de primeira classe em
+   `config.py:DEFAULTS` com validação (fim do drift schema↔código).
+8. ✅ Coverage agora medido via stdlib `trace` (`hipocampo.tests.coverage_report`,
+   job de CI); testes adicionados para `frontmatter`/`preflight`/`canary`/`mdutil`
+   (142 → 182 testes).
 
 ---
 
@@ -199,13 +202,10 @@ Todas verificadas executando o código; suíte **142 → 145 testes, verde**.
 3. Considerar uma postura explícita sobre **memory poisoning** — o diff-review humano é meio
    caminho andado; seria um diferencial *à frente* do mercado.
 
-**Qualidade de engenharia (itens menores 5–8 da §3):**
-
-4. Consolidar `title`/`_iter_md` num helper único.
-5. Ler `dirs.generated` do config em `views.py` em vez do literal `"_generated"`.
-6. Reconciliar `project_mode`/`team` entre o exemplo TOML e `config.py:DEFAULTS`.
-7. Adicionar medição de coverage (via stdlib `trace`, para manter zero-dep) e fechar os buracos
-   em `frontmatter`/`preflight`/`canary`.
+**Qualidade de engenharia (itens menores 5–8 da §3):** ✅ todos endereçados no
+follow-up [Unreleased] — helper único `mdutil.py`, `dirs.generated` no `views.py`,
+`project_mode`/`team` em `DEFAULTS` com validação, e coverage stdlib `trace` +
+testes para `frontmatter`/`preflight`/`canary`.
 
 ---
 

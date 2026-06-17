@@ -25,6 +25,7 @@ import sys
 import unicodedata
 
 from . import config as _config
+from .mdutil import iter_md, title_of  # title_of re-exported for back-compat
 
 try:
     from . import index as _index  # SQLite FTS5 + RRF (optional accelerator)
@@ -55,16 +56,6 @@ def tokenize(text):
     return _TOKEN_RE.findall(normalize(text))
 
 
-def title_of(text, fallback):
-    for line in text.splitlines():
-        line = line.strip()
-        if line.startswith("title:"):
-            return line[len("title:"):].strip().strip("'\"")
-        if line.startswith("# "):
-            return line[2:].strip()
-    return fallback
-
-
 def snippet(text, query_terms, width=160):
     flat = " ".join(text.split())
     low = normalize(flat)
@@ -81,17 +72,10 @@ def collect(cfg, dirs):
     docs = []
     repo_root = str(cfg.repo_root)
     for d in dirs:
-        root = cfg.vault_root / d
-        if not root.is_dir():
-            continue
-        for dirpath, _sub, files in os.walk(root):
-            for fname in sorted(files):
-                if not fname.endswith(".md"):
-                    continue
-                path = os.path.join(dirpath, fname)
-                with open(path, "r", encoding="utf-8", errors="replace") as fh:
-                    text = fh.read()
-                docs.append((os.path.relpath(path, repo_root).replace(os.sep, "/"), text))
+        for path in iter_md(cfg.vault_root / d):
+            with open(path, "r", encoding="utf-8", errors="replace") as fh:
+                text = fh.read()
+            docs.append((os.path.relpath(path, repo_root).replace(os.sep, "/"), text))
     return docs
 
 

@@ -27,6 +27,9 @@ class ConfigError(Exception):
 DEFAULTS = {
     "vault_root": "docs/brain",
     "language": "en",
+    # Interview answers recorded by /brain-init (read by the generator skills).
+    "project_mode": "existing",  # "existing" | "greenfield"
+    "team": False,               # true → PR-workflow rules + protected-branch suggestion
     "base_branch": "main",
     "stale_days": 365,
     "dirs": {
@@ -151,6 +154,14 @@ class Config:
     @property
     def language(self) -> str:
         return self._d["language"]
+
+    @property
+    def project_mode(self) -> str:
+        return self._d["project_mode"]
+
+    @property
+    def team(self) -> bool:
+        return bool(self._d["team"])
 
     @property
     def base_branch(self) -> str:
@@ -405,6 +416,12 @@ def _validate(data):
     language = data.get("language")
     if language is not None and not isinstance(language, str):
         raise ConfigError(f"language must be a string (got {language!r}).")
+    project_mode = data.get("project_mode")
+    if project_mode is not None and project_mode not in ("existing", "greenfield"):
+        raise ConfigError(
+            f'project_mode must be "existing" or "greenfield" (got {project_mode!r}).')
+    if "team" in data and not isinstance(data["team"], bool):
+        raise ConfigError(f"team must be true or false (got {data['team']!r}).")
     dirs = data.get("dirs", {})
     if not isinstance(dirs, dict):
         raise ConfigError("dirs must be a table of name = path entries.")

@@ -166,17 +166,49 @@ class ExampleConfigTest(unittest.TestCase):
                              DEFAULTS["doc_sync_escape_globs"])
             self.assertEqual(cfg.enforcement_mode("ci"), "block")
             self.assertEqual(cfg.capture_auto_mode, "inbox")
+            # Interview answers are now first-class config (no longer drift):
+            self.assertEqual(cfg.project_mode, "existing")
+            self.assertIs(cfg.team, False)
 
     def test_example_top_level_keys_match_defaults(self):
         import tomllib
         with open(_EXAMPLE, "rb") as fh:
             data = tomllib.load(fh)
         # Every example top-level key must be a real DEFAULTS key (catches a key
-        # that silently nested into the wrong table). project_mode/team are
-        # interview-only extras not in DEFAULTS, so allow them.
-        allowed = set(DEFAULTS) | {"project_mode", "team"}
-        self.assertTrue(set(data).issubset(allowed),
-                        f"unexpected top-level keys: {set(data) - allowed}")
+        # that silently nested into the wrong table, and a key documented in the
+        # example but missing from DEFAULTS — the drift this guards against).
+        self.assertTrue(set(data).issubset(set(DEFAULTS)),
+                        f"unexpected top-level keys: {set(data) - set(DEFAULTS)}")
+
+
+class InterviewAnswersTest(unittest.TestCase):
+    """project_mode/team — interview answers recorded by /brain-init."""
+
+    def test_defaults(self):
+        cfg = Config(DEFAULTS, Path("/repo"))
+        self.assertEqual(cfg.project_mode, "existing")
+        self.assertIs(cfg.team, False)
+
+    def test_overrides_apply(self):
+        cfg = Config(deep_merge(DEFAULTS, {"project_mode": "greenfield", "team": True}),
+                     Path("/repo"))
+        self.assertEqual(cfg.project_mode, "greenfield")
+        self.assertIs(cfg.team, True)
+
+    def test_invalid_project_mode_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / config.CONFIG_FILENAME).write_text(
+                'project_mode = "halfway"\n', encoding="utf-8")
+            with self.assertRaises(config.ConfigError):
+                load_config(start=root)
+
+    def test_non_bool_team_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / config.CONFIG_FILENAME).write_text('team = "yes"\n', encoding="utf-8")
+            with self.assertRaises(config.ConfigError):
+                load_config(start=root)
 
 
 if __name__ == "__main__":
