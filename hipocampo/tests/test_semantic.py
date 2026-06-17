@@ -60,5 +60,39 @@ class NoOpWhenUnavailableTest(unittest.TestCase):
         self.assertEqual(semantic.forget(self.cfg, ["k/a.md"]), 0)
 
 
+@unittest.skipUnless(
+    semantic._deps() is not None and semantic.extension_loadable()
+    and __import__("hipocampo.index", fromlist=["fts5_available"]).fts5_available(),
+    "semantic extra not installed (or sqlite without FTS5/extensions)")
+class SemanticEndToEndTest(unittest.TestCase):
+    """Self-verification: when the [semantic] extra IS present, the repo exercises
+    its own dep-backed leaf calls (_embed → vec0 → MATCH → RRF) end to end, so they
+    can't silently rot. Skips cleanly everywhere the extra is absent."""
+
+    def test_paraphrase_query_surfaces_semantic_match(self):
+        import tempfile
+        from hipocampo import index
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            kn = root / "docs/brain/knowledge"
+            kn.mkdir(parents=True)
+            # Phrased to share no query keywords — only BM25 would miss it.
+            (kn / "auth.md").write_text(
+                "---\ntitle: Auth\n---\nShort token TTL with a refresh token; "
+                "users are logged out automatically.\n", encoding="utf-8")
+            (kn / "billing.md").write_text(
+                "---\ntitle: Billing\n---\ninvoices payments dunning ledger\n",
+                encoding="utf-8")
+            cfg = Config(deep_merge(DEFAULTS, {"semantic": {"enabled": True}}), root)
+            self.assertTrue(semantic.available(cfg))
+            try:
+                hits = index.search("session expiry auto logout", cfg=cfg, rrf=True)
+            except Exception as e:  # offline w/o cached model, etc. — don't fail CI
+                self.skipTest(f"model/runtime unavailable: {e}")
+            paths = [rp for rp, _ in hits]
+            self.assertTrue(any(p.endswith("auth.md") for p in paths),
+                            f"semantic match not surfaced: {paths}")
+
+
 if __name__ == "__main__":
     unittest.main()

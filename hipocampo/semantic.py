@@ -15,11 +15,11 @@ pure BM25 — the tooling runs identically, just without the vector ranking. The
 markdown vault stays the source of truth; vectors live in a disposable ``vec0``
 table beside the FTS5 index and rebuild from disk.
 
-NOTE: the leaf functions that call ``model2vec``/``sqlite-vec`` (:func:`_load_model`,
-:func:`_connect`, :func:`reindex`, :func:`rank`) are written against those
-libraries' documented APIs but are exercised only when the extra is installed —
-verify end-to-end on a machine with the deps. Everything around them (availability,
-fallback, RRF wiring) is covered by the stdlib test suite.
+The leaf functions that call ``model2vec``/``sqlite-vec`` (:func:`_load_model`,
+:func:`_connect`, :func:`reindex`, :func:`rank`) run only when the extra is
+installed; ``test_semantic.SemanticEndToEndTest`` exercises them end-to-end
+wherever the deps exist (and ``skipUnless`` otherwise), while the availability /
+fallback / RRF wiring is always covered by the stdlib suite.
 """
 
 import os

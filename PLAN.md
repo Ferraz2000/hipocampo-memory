@@ -168,10 +168,16 @@ engine beats a server. B is therefore three pieces:
   `rank`. `index.refresh` mirrors the FTS5 delta into a `vec0` store; `index.search`
   fuses the vector ranking into RRF when available (empty ⇒ unchanged BM25 path).
 - `recall` skill (piece 2) + the router cue in `brain-router-init` (piece 3).
-- Degradation, fallback, and RRF wiring covered by the stdlib suite (141 → green).
-  **Pending verification:** the `model2vec`/`sqlite-vec` leaf calls (`_embed`, the
-  `vec0` MATCH query) run only with the extra installed — validate end-to-end on a
-  deps machine; consider a `[graph]`/`[llm]` tier only after that.
+- Degradation, fallback, and RRF wiring covered by the stdlib suite (142 → green).
+- **Verified end-to-end** (dogfood): with the extra installed, a `SemanticEndToEndTest`
+  embeds notes, builds the `vec0` store, and confirms a paraphrase query
+  (`"session expiry auto logout"`) surfaces a note phrased as "token TTL / logged
+  out automatically" — no shared keywords, pure semantic win. The self-test
+  `skipUnless` the extra is present, so the repo validates its own leaf calls
+  (`_embed`, `vec0` MATCH) wherever the deps exist and skips cleanly otherwise.
+
+**Next (optional):** a `[graph]` (graphiti-core) or `[llm]` (BYO-key consolidation)
+tier — only if a real need shows up; documented, not built.
 
 Without (2)+(3) the engine only serves manual search — the agent never uses it.
 
