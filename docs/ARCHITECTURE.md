@@ -134,6 +134,26 @@ same engine, same three surfaces. The only variable is whether `notes_vec` exist
 `[semantic]` is a pure additive upgrade — a second hit-list, nothing else — so the
 core still runs headless with zero deps.
 
+## Requirements (per machine, by tier)
+
+The core is **vendored** (`hipocampo/` is committed), so it needs **no
+`pip install`** — only the optional semantic tier does.
+
+| Tier | Per machine | Pulls | Status |
+|------|-------------|-------|--------|
+| **Core + capture** | Python 3.11+ (stdlib `tomllib`), git, an agent CLI (Claude Code / Codex / Gemini) | nothing — package vendored, `sqlite3` is stdlib | ✅ shipped |
+| **`[semantic]`** | the above **+** `pip install hipocampo[semantic]` | `numpy` + `model2vec` (+ a ~15–30 MB model blob, downloaded once) + `sqlite-vec` (native loadable extension) | ⬜ Phase 11 |
+
+**The one implicit requirement for `[semantic]`:** the machine's Python `sqlite3`
+must have `enable_load_extension` available (some macOS system Pythons / minimal
+Docker images disable it). If absent, `sqlite-vec` can't load and search degrades
+to BM25 — no crash, just no vectors on that machine. FTS5 behaves the same: present
+in most Python SQLite builds; absent ⇒ pure-BM25 fallback (zero install either way).
+
+**Never required, any tier:** no daemon/server, no Docker, no external vector DB,
+no API key (the `[llm]` tier is separate and opt-in), no GPU/Ollama, no runtime
+internet (after the model is cached). Everything stays in-process and embeddable.
+
 ## Design principles
 
 - **Markdown is the source of truth.** Any index/cache (`.brain-cache/`) is
