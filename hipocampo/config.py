@@ -88,6 +88,13 @@ DEFAULTS = {
     # Phrases that mean "the user already triggered capture this session" — the
     # Stop-hook sweep skips when it sees one (agent-agnostic; tune per setup).
     "capture_verbs": ["/capture", "registra isso", "save to the brain"],
+    # Phase 12 semi-automatic capture — where the session-end sweep lands:
+    #   "inbox" — sweep into the vault inbox (legacy default; git-versioned).
+    #   "draft" — stage candidates in the disposable .brain-cache/ for review via
+    #             `/capture --review`; nothing enters the vault without approval.
+    #   "off"   — no sweep at all.
+    # `max_candidates` caps how many candidates a draft sweep stages (cuts noise).
+    "capture": {"auto": {"mode": "inbox", "max_candidates": 7}},
     "doc_sync": [],
     # A changed file matching any of these globs (e.g. a Doc Impact Report)
     # satisfies every doc_sync rule for that commit.
@@ -248,6 +255,16 @@ class Config:
         return list(self._d["capture_verbs"])
 
     @property
+    def capture_auto_mode(self) -> str:
+        """Where the session-end sweep lands: "inbox" | "draft" | "off"."""
+        return self._d["capture"]["auto"]["mode"]
+
+    @property
+    def capture_auto_max(self) -> int:
+        """Cap on candidates a draft sweep stages."""
+        return int(self._d["capture"]["auto"]["max_candidates"])
+
+    @property
     def views_notes_root(self) -> str:
         return self._d["views"]["notes_root"]
 
@@ -346,6 +363,11 @@ def _validate(data):
         if mode not in ("block", "warn", "off"):
             raise ConfigError(
                 f'enforcement.{point} must be "block", "warn", or "off" (got {mode!r}).')
+
+    auto_mode = data.get("capture", {}).get("auto", {}).get("mode", "inbox")
+    if auto_mode not in ("inbox", "draft", "off"):
+        raise ConfigError(
+            f'capture.auto.mode must be "inbox", "draft", or "off" (got {auto_mode!r}).')
 
 
 def load_config(start=None) -> Config:

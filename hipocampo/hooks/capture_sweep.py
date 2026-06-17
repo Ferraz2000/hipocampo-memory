@@ -220,6 +220,58 @@ def _render_sweep(date, short, session_id, sweep_type, triggers_hit, urls,
     return "\n".join(lines)
 
 
+def _pending_header(persona_file=".claude/rules/USER.md"):
+    """Header for the disposable draft-mode staging file (`.brain-cache/`)."""
+    return "\n".join([
+        "# Pending capture — review, don't commit",
+        "",
+        "> Disposable staging written by the capture-sweep hook (`capture.auto.mode",
+        "> = draft`). Lives in `.brain-cache/` (gitignored) — **nothing here is in",
+        "> durable memory yet.** Triage with `/capture --review`: for each candidate,",
+        "> file it (concept → `knowledge/`, source → `raw/sources/`, persona →",
+        f"> `{persona_file}`) or drop it. This file is deleted once triaged.",
+        ">",
+        "> ⚠ Secret-shaped strings were auto-redacted (best-effort). Re-check before filing.",
+        "",
+    ])
+
+
+def _render_pending_block(date, short, triggers_hit, urls, max_candidates=7):
+    """One per-session block of capture candidates as review checkboxes."""
+    lines = [f"## Session {short} — {date}", ""]
+    seen = set()
+    n = 0
+    for trigger, snippet in triggers_hit:
+        key = snippet[:120]
+        if key in seen:
+            continue
+        seen.add(key)
+        lines.append(f"- [ ] **{trigger}**: …{snippet}…")
+        n += 1
+        if n >= max_candidates:
+            break
+    for u in sorted(urls)[:max_candidates]:
+        lines.append(f"- [ ] source: {u}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _write_pending(staging, date, short, session_id, triggers_hit, urls, cfg):
+    """Append this session's candidates to the disposable staging file. Idempotent
+    per session (re-runs don't duplicate); creates the header once. Never touches
+    the vault — the whole point of draft mode."""
+    block = _render_pending_block(date, short, triggers_hit, urls, cfg.capture_auto_max)
+    if staging.exists():
+        prior = staging.read_text(encoding="utf-8")
+        if f"session {short}".lower() in prior.lower():
+            return  # already staged for this session
+        staging.write_text(prior.rstrip() + "\n\n" + block + "\n", encoding="utf-8")
+    else:
+        staging.parent.mkdir(parents=True, exist_ok=True)
+        staging.write_text(_pending_header(cfg.persona_file) + "\n" + block + "\n",
+                           encoding="utf-8")
+
+
 def main(argv=None):
     try:
         payload = json.load(sys.stdin)
@@ -240,20 +292,28 @@ def main(argv=None):
         cfg = _config.load_config(start=project_dir())
     except _config.ConfigError:
         return 0  # bad config shouldn't break the session-end hook
-    cfg.inbox_dir.mkdir(parents=True, exist_ok=True)
 
-    try:  # housekeeping: expire stale sweeps
-        removed = inbox_decay.decay(cfg=cfg, apply=True)
-        if removed:
-            print(f"capture-sweep: {len(removed)} stale sweep(s) removed.", file=sys.stderr)
-    except Exception:
-        pass
+    mode = cfg.capture_auto_mode
+    if mode == "off":
+        return 0
 
     date = datetime.now().strftime("%Y-%m-%d")
     short = session_id[:8]
+    staging = cfg.cache_dir / "pending-capture.md"
     out_path = cfg.inbox_dir / f"{date}-sweep-{short}.md"
-    if out_path.exists():
-        return 0
+
+    if mode == "inbox":
+        # Legacy path: sweep into the vault inbox + housekeeping decay. Draft mode
+        # never touches the vault, so neither the mkdir nor the decay run there.
+        cfg.inbox_dir.mkdir(parents=True, exist_ok=True)
+        try:  # housekeeping: expire stale sweeps
+            removed = inbox_decay.decay(cfg=cfg, apply=True)
+            if removed:
+                print(f"capture-sweep: {len(removed)} stale sweep(s) removed.", file=sys.stderr)
+        except Exception:
+            pass
+        if out_path.exists():
+            return 0
 
     triggers_hit, urls, capture_invoked = scan_transcript(transcript_path, cfg)
     if capture_invoked:
@@ -263,9 +323,21 @@ def main(argv=None):
         captured_urls, inbox_blob = scan_existing(cfg, exclude_path=str(out_path))
     except Exception:
         captured_urls, inbox_blob = set(), ""
+    if mode == "draft" and staging.exists():
+        try:  # dedup against candidates already staged but not yet reviewed
+            inbox_blob += " " + staging.read_text(encoding="utf-8").lower()
+        except OSError:
+            pass
     urls, triggers_hit = filter_new(urls, triggers_hit, captured_urls, inbox_blob)
 
     if not triggers_hit and not urls:
+        return 0
+
+    if mode == "draft":
+        _write_pending(staging, date, short, session_id, triggers_hit, urls, cfg)
+        rel = os.path.relpath(staging, cfg.repo_root)
+        print(f"capture-sweep(draft): {len(triggers_hit)} candidate(s) + {len(urls)} "
+              f"URL(s) staged in {rel} — review via /capture --review", file=sys.stderr)
         return 0
 
     out_path.write_text(

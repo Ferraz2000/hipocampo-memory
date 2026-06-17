@@ -79,6 +79,15 @@ def build_briefing(cfg):
             lines += [f"- {s}" for s in sweeps[:10]]
             lines.append("")
 
+    # Draft-mode (Phase 12) candidates staged in the disposable cache — surface
+    # the reminder so the human reviews before they're lost to a cache wipe.
+    pending = cfg.cache_dir / "pending-capture.md"
+    if pending.is_file():
+        rel = pending.relative_to(cfg.repo_root).as_posix()
+        lines.append("## Pending capture — review via /capture --review")
+        lines.append(f"- candidates staged in `{rel}` (not yet in the vault)")
+        lines.append("")
+
     text = "\n".join(lines).rstrip() + "\n"
     if len(text) <= _CAP:
         return text

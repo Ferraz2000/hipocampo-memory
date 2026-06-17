@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from hipocampo.config import Config, DEFAULTS
+from hipocampo.config import Config, DEFAULTS, deep_merge
 from hipocampo.hooks import capture_sweep as cs
 from hipocampo.hooks import session_start as ss
 
@@ -106,6 +106,54 @@ class ExtractHelperTest(unittest.TestCase):
         self.assertEqual(cs._extract({"type": "assistant", "content": "z"})[1], "assistant")
 
 
+class PendingCaptureTest(unittest.TestCase):
+    """Phase 12 draft-mode staging (disposable cache, human-gated review)."""
+
+    def _draft_cfg(self, root):
+        return Config(deep_merge(DEFAULTS, {"capture": {"auto": {"mode": "draft"}}}), root)
+
+    def test_render_pending_block_caps_and_uses_checkboxes(self):
+        triggers = [("decided", f"snippet {i}") for i in range(20)]
+        block = cs._render_pending_block("2026-06-17", "abcd1234", triggers, set(),
+                                         max_candidates=3)
+        self.assertEqual(block.count("- [ ]"), 3)        # capped
+        self.assertIn("## Session abcd1234", block)
+
+    def test_pending_header_points_at_review_and_persona(self):
+        h = cs._pending_header(persona_file="docs/brain/USER.md")
+        self.assertIn("/capture --review", h)
+        self.assertIn("docs/brain/USER.md", h)
+        self.assertIn(".brain-cache", h)
+
+    def test_write_pending_lands_in_cache_not_vault(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = self._draft_cfg(Path(tmp))
+            staging = cfg.cache_dir / "pending-capture.md"
+            cs._write_pending(staging, "2026-06-17", "abcd1234", "sid",
+                              [("decided", "we decided X")], {"https://e.com/x"}, cfg)
+            self.assertTrue(staging.exists())
+            self.assertFalse(cfg.inbox_dir.exists())     # vault untouched
+            txt = staging.read_text(encoding="utf-8")
+            self.assertIn("- [ ]", txt)
+            self.assertIn("source: https://e.com/x", txt)
+
+    def test_write_pending_dedups_same_session_appends_new(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = self._draft_cfg(Path(tmp))
+            staging = cfg.cache_dir / "pending-capture.md"
+            cs._write_pending(staging, "2026-06-17", "aaaa", "s1", [("decided", "x")], set(), cfg)
+            cs._write_pending(staging, "2026-06-17", "aaaa", "s1", [("decided", "x")], set(), cfg)
+            txt = staging.read_text(encoding="utf-8")
+            self.assertEqual(txt.lower().count("## session aaaa"), 1)   # not duplicated
+            cs._write_pending(staging, "2026-06-17", "bbbb", "s2", [("trade-off", "y")], set(), cfg)
+            self.assertIn("## Session bbbb", staging.read_text(encoding="utf-8"))
+
+    def test_draft_mode_max_default_is_seven(self):
+        cfg = self._draft_cfg(Path("/repo"))
+        self.assertEqual(cfg.capture_auto_mode, "draft")
+        self.assertEqual(cfg.capture_auto_max, 7)
+
+
 class SessionStartTest(unittest.TestCase):
     def test_base_falls_back_to_master_when_main_missing(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -183,6 +231,16 @@ class SessionStartTest(unittest.TestCase):
 
     def test_plain_format_is_raw_text(self):
         self.assertEqual(ss._emit("BRIEFING TEXT", "plain"), "BRIEFING TEXT")
+
+    def test_briefing_surfaces_pending_capture_staging(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cfg = Config(DEFAULTS, root)
+            cfg.cache_dir.mkdir(parents=True, exist_ok=True)
+            (cfg.cache_dir / "pending-capture.md").write_text("# Pending", encoding="utf-8")
+            out = ss.build_briefing(cfg)
+            self.assertIn("/capture --review", out)
+            self.assertIn(".brain-cache/pending-capture.md", out)
 
 
 class PersonaConfigTest(unittest.TestCase):

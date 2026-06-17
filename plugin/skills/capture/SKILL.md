@@ -1,6 +1,6 @@
 ---
 name: capture
-description: Capture the current conversation into durable, git-versioned memory (source / concept / contract / proposal / persona) with a human write-gate. Use when the user says "/capture", "capture this", "save to the brain", or pt-BR phrases like "registra isso" / "salva no brain", "remember this decision", or accepts a proactive capture offer.
+description: Capture the current conversation into durable, git-versioned memory (source / concept / contract / proposal / persona) with a human write-gate. Use when the user says "/capture", "capture this", "save to the brain", or pt-BR phrases like "registra isso" / "salva no brain", "remember this decision", accepts a proactive capture offer, or runs "/capture --review" to triage staged draft candidates.
 ---
 
 # capture — capture chat into durable knowledge
@@ -8,6 +8,20 @@ description: Capture the current conversation into durable, git-versioned memory
 Implements the capture protocol (`<vault>/capture.md`). Triggered by the explicit
 verb or by the user accepting a proactive offer. The human curates by talking; you
 do the bookkeeping.
+
+## `--review` — triage draft-mode candidates
+
+When invoked as `/capture --review` (semi-automatic capture, `capture.auto.mode =
+draft`): read the staging file `<cache>/pending-capture.md` (cache dir from
+`[dirs] cache`, default `.brain-cache/`). It holds checkbox candidates the
+session-end sweep staged — **disposable, not yet in the vault**. For each:
+
+1. Present it; let the human accept, edit, or drop (the write-gate is their call).
+2. For accepted ones, run the normal capture flow below (classify → file → index →
+   log). Dropped ones: just leave unchecked.
+3. When done, **delete `pending-capture.md`** (it's disposable staging, not memory).
+
+If the staging file is absent, say so — nothing to review.
 
 ## Task
 

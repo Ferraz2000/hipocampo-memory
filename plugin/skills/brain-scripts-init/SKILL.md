@@ -32,7 +32,11 @@ installed (hooks/CI need the package importable at the repo root).
    - **Native auto-memory policy**: disable / redirect to the vault inbox
      (promoted via the write-gate) / leave as is. Applies where the agent has the
      feature (Claude Code `.claude/settings.json` `autoMemoryEnabled`/
-     `autoMemoryDirectory`; Gemini Auto Memory is preview; Codex has none).
+     `autoMemoryDirectory`; Gemini Auto Memory is preview; Codex has none). Also
+     set hipocampo's own **`[capture.auto] mode`** here — **recommend `"draft"`**
+     for new setups (the session-end sweep stages candidates in the disposable
+     `.brain-cache/` for `/capture --review`, so nothing reaches the vault without
+     approval); `"inbox"` is the legacy default; `"off"` disables the sweep.
 1. **Vendor the package.** Copy `${CLAUDE_PLUGIN_ROOT}/hipocampo/` to the repo root
    as `hipocampo/` (exclude `tests/`). Get the version from
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` (`version` field) and the
@@ -71,7 +75,9 @@ installed (hooks/CI need the package importable at the repo root).
    - Write the chosen **`[enforcement]`** preset (from step 0) into
      `brain.config.toml` (omit the block to keep the all-`block` default).
    - Apply the **auto-memory** answer from step 0 in the agent's own settings
-     (Claude `.claude/settings.json`; Gemini if available; Codex skip with a note).
+     (Claude `.claude/settings.json`; Gemini if available; Codex skip with a note),
+     and write the chosen **`[capture.auto] mode`** into `brain.config.toml`
+     (omit the block to keep the legacy `"inbox"` default).
 6. **Report** what was vendored + wired (per agent) + the chosen enforcement level
    + how to add the first doc-sync rule (point to the `[[doc_sync]]` block in
    `brain.config.toml`).

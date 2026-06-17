@@ -172,7 +172,7 @@ lookups already ~86% on BM25 alone.
 with semi-automatic capture (agent drafts at SessionEnd, human approves) or the
 semantic engine just searches an empty vault.
 
-## Phase 12 — semi-automatic capture ⬜ planned · **Onda 1 (build first)**
+## Phase 12 — semi-automatic capture 🟡 in progress · **Onda 1 (build first)**
 
 Closes the one real hole in the human-write-gate model: 100% manual `/capture`
 leaves the vault sparse (nobody remembers to file), and an empty vault makes
@@ -206,6 +206,14 @@ max_candidates = 7  # AgeMem-style: cap noise, discard near-duplicates
 - Core, stdlib-only: SessionEnd hook + staging file + the existing `/capture`.
   Zero dependency — reuses the `capture_sweep` hook already shipped.
 - Pairs with Phase 11: Onda 1 fills the vault, Onda 2 makes it findable by concept.
+
+**Landed (increment 1):** `capture_sweep` now branches on `[capture.auto] mode`
+(`inbox` legacy default | `draft` | `off`). `draft` stages checkbox candidates in
+the disposable `.brain-cache/pending-capture.md` (never the vault), dedups per
+session, and the SessionStart briefing surfaces them; `/capture --review` triages.
+`brain-scripts-init` recommends `draft` for new setups. Tests green (127).
+**Next:** richer agent-reasoned drafting (beyond regex triggers) + the review-loop
+ergonomics.
 
 ## Script port status (origin → `hipocampo/`)
 
