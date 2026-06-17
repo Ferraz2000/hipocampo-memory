@@ -66,7 +66,8 @@ def load_notes(root):
             fields, _body = parse_frontmatter(path.read_text(encoding="utf-8", errors="replace"))
         except OSError:
             continue
-        notes.append(Note(str(path), path.stem, rel.parent.as_posix().replace(".", ""), fields))
+        rel_dir = "" if rel.parent == Path(".") else rel.parent.as_posix()
+        notes.append(Note(str(path), path.stem, rel_dir, fields))
     notes.sort(key=lambda n: (n.rel_dir, n.name))
     return notes
 
