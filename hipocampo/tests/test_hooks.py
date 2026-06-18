@@ -142,6 +142,15 @@ class ExtractHelperTest(unittest.TestCase):
         self.assertEqual(cs._content_text([{"text": "a"}, {"text": "b"}]), "a b")
         self.assertEqual(cs._content_text(["a", "b"]), "a b")
         self.assertEqual(cs._content_text(None), "")
+        # Regression: a nested list (Claude tool_result whose `content` is itself
+        # a list of blocks) must flatten, not raise "expected str, list found".
+        self.assertEqual(
+            cs._content_text(
+                [{"type": "tool_result", "content": [{"type": "text", "text": "nested ok"}]}]
+            ),
+            "nested ok",
+        )
+        self.assertEqual(cs._content_text({"type": "text", "text": "dict direct"}), "dict direct")
 
     def test_extract_normalizes_roles(self):
         self.assertEqual(cs._extract({"role": "human", "content": "x"})[1], "user")
