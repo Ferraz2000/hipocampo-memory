@@ -7,9 +7,11 @@ status, see [`PLAN.md`](PLAN.md).
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-06-18
+
 Engineering cleanup closing the minor backlog (items 5–8) from the 2026-06
-quality analysis. Backward compatible; `project_mode`/`team` add config keys that
-already existed in the example file.
+quality analysis, plus a Stop-hook crash fix. Backward compatible; `project_mode`/
+`team` add config keys that already existed in the example file.
 
 ### Added
 - `hipocampo/mdutil.py` — one home for the markdown title extractor and the
@@ -29,6 +31,15 @@ already existed in the example file.
 ### Changed
 - `views.py` reads the generated-mirrors directory name from `[dirs] generated`
   instead of a hardcoded `"_generated"` literal.
+
+### Fixed
+- **Stop-hook crash on nested `tool_result` content (#7).** `_content_text`
+  appended a nested list straight into `" ".join(...)` when a content block's own
+  `content` was itself a list (e.g. a Claude `tool_result` whose `content` is a
+  list of blocks) → `TypeError: sequence item 0: expected str instance, list
+  found` on every Stop-hook run in tool-using sessions. Made `_content_text`
+  recursive (flattens str / dict / list at any depth); added a regression case to
+  `test_content_text_flattens_shapes`.
 
 ## [0.9.1]
 
