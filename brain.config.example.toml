@@ -130,6 +130,19 @@ enabled = false
 model = "minishlab/potion-base-8M"
 dim = 256
 
+# Opt-in in-session reflection loop (the /reflect skill): generate -> critique ->
+# revise, bounded by explicit stopping criteria, seeded from past lessons (recall)
+# and closed by capturing the distilled lesson. OFF by default. The loop and all
+# judging live in the skill; Python only reads/validates these knobs (no LLM calls).
+[reflection]
+enabled = false
+max_iterations = 3     # hard cap — returns diminish sharply after 2-3
+score_threshold = 8    # LLM-as-judge early-stop: stop when score >= this
+score_scale = 10       # ceiling of the rubric scale (must be >= score_threshold)
+min_improvement = 1    # a per-round gain below this counts as "no progress"
+patience = 1           # stop after this many consecutive no-progress rounds
+notes_root = "insights"  # vault-relative dir the distilled lesson defaults to
+
 # How hard each gate point pushes back when a check fails. The git hooks and CI
 # call `hipocampo.gate`, which reads this (validators always report truthfully).
 # Per point: "block" = fail the operation; "warn" = print findings but don't
