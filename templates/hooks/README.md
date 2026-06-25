@@ -7,7 +7,7 @@ agents you use. All three pass a session-start `source` and an end-of-session
 
 | Agent | File | Events |
 |-------|------|--------|
-| Claude Code | `plugin/hooks/hooks.json` (carried by the plugin) | `SessionStart`, `Stop` |
+| Claude Code | `plugin/hooks/hooks.json` (carried by the plugin) | `SessionStart`, `SessionEnd` |
 | Codex CLI | `.codex/hooks.json` (or `~/.codex/hooks.json`) | `SessionStart`, `Stop` |
 | Gemini CLI | merge into `.gemini/settings.json` | `SessionStart`, `SessionEnd` |
 

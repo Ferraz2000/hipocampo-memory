@@ -82,6 +82,20 @@ class HookTemplatesTest(unittest.TestCase):
             self.assertIn("hipocampo.hooks.capture_sweep", cmds)
             self.assertIn("hipocampo.hooks.ensure_githooks", cmds)
 
+    def test_plugin_hooks_wire_sweep_on_sessionend_not_stop(self):
+        # Regression: capture_sweep is a once-per-session consolidation. Claude
+        # Code's `Stop` fires after EVERY assistant turn, so wiring the sweep there
+        # re-ran it mid-session (the "session ended then came back" bug). It must
+        # live on `SessionEnd`, which fires once at true session end.
+        data = json.loads(
+            (REPO_ROOT / "plugin" / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+        self.assertEqual(set(data["hooks"]), {"SessionStart", "SessionEnd"})
+        self.assertNotIn("Stop", data["hooks"])
+        sweep_events = [evt for evt, entries in data["hooks"].items()
+                        for entry in entries for h in entry.get("hooks", [])
+                        if "capture_sweep" in h.get("command", "")]
+        self.assertEqual(sweep_events, ["SessionEnd"])
+
 
 if __name__ == "__main__":
     unittest.main()

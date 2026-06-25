@@ -129,7 +129,7 @@ agente.
 | Skills (SKILL.md) | nativo | nativo (`.agents/skills`) | nativo (`.gemini/skills`) |
 | Router (`AGENTS.md`) | via `CLAUDE.md → @AGENTS.md` | auto-descoberto | setar `context.fileName` em `.gemini/settings.json` |
 | Briefing no início da sessão | hook `SessionStart` | hook `SessionStart` | hook `SessionStart` |
-| Capture-sweep no fim | hook `Stop` | hook `Stop` | hook `SessionEnd` |
+| Capture-sweep no fim | hook `SessionEnd` | hook `Stop` | hook `SessionEnd` |
 | Memória de persona | `.claude/rules/USER.md` (auto-load) | arquivo apontado pelo `AGENTS.md` | arquivo apontado pelo `AGENTS.md` |
 | Regras por path | nativo (`.claude/rules/*.md` `paths:`) | dobrar no `AGENTS.md` | dobrar no `AGENTS.md` |
 | Gate de doc-sync, busca, validators | ✅ (Python vendorado) | ✅ | ✅ |

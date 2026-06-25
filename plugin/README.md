@@ -5,7 +5,7 @@ Installable bundle: generator + workflow skills and the two automation hooks.
 ```
 plugin/
   .claude-plugin/plugin.json   # manifest (name, version, …)
-  hooks/hooks.json             # SessionStart briefing + Stop capture-sweep
+  hooks/hooks.json             # SessionStart briefing + SessionEnd capture-sweep
   skills/                      # SKILL.md per skill (Agent Skills open format)
 ```
 
