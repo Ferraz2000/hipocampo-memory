@@ -7,6 +7,8 @@ status, see [`PLAN.md`](PLAN.md).
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-06-25
+
 ### Added
 - **`/reflect` skill + `[reflection]` config (Phase 13, opt-in).** A bounded
   in-session generate→critique→revise loop with explicit stopping criteria
