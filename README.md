@@ -126,7 +126,7 @@ the session automations are wired to each agent's native hook system.
 | Skills (SKILL.md) | native | native (`.agents/skills`) | native (`.gemini/skills`) |
 | Router (`AGENTS.md`) | via `CLAUDE.md → @AGENTS.md` | auto-discovered | set `context.fileName` in `.gemini/settings.json` |
 | Session-start briefing | `SessionStart` hook | `SessionStart` hook | `SessionStart` hook |
-| Session-end capture-sweep | `Stop` hook | `Stop` hook | `SessionEnd` hook |
+| Session-end capture-sweep | `SessionEnd` hook | `Stop` hook | `SessionEnd` hook |
 | Persona memory | `.claude/rules/USER.md` (auto-load) | file referenced from `AGENTS.md` | file referenced from `AGENTS.md` |
 | Path-scoped rules | native (`.claude/rules/*.md` `paths:`) | fold into `AGENTS.md` | fold into `AGENTS.md` |
 | Doc-sync gate, search, validators | ✅ (vendored Python) | ✅ | ✅ |

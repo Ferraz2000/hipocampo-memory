@@ -17,6 +17,17 @@ status, see [`PLAN.md`](PLAN.md).
   evaluating the stop predicate from config (mirrors `gate.py`). OFF by default;
   absent/disabled ⇒ a single critique pass, never an unbounded loop.
 
+### Fixed
+- **Capture-sweep ran every turn instead of once at session end (Claude Code).**
+  The plugin wired `capture_sweep` to the `Stop` event, which fires after *every*
+  assistant turn — so the session-end consolidation sweep (transcript scan, inbox
+  decay, stderr report) re-ran mid-session, surfacing as the session "ending" and
+  then coming back. Moved it to `SessionEnd` (fires once at true session end, and
+  receives `transcript_path`), matching what the Gemini template already did. The
+  `stop_hook_active` guard stays for the Codex `Stop` wiring; the `reason=="clear"`
+  guard now also covers Claude's `/clear` SessionEnd. Added a regression test
+  pinning the plugin's events to `{SessionStart, SessionEnd}`.
+
 ## [0.10.0] — 2026-06-18
 
 Engineering cleanup closing the minor backlog (items 5–8) from the 2026-06

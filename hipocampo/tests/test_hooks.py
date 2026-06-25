@@ -1,10 +1,14 @@
 """Tests for the capture-sweep and session-start hooks."""
 
+import contextlib
+import io
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from hipocampo.config import Config, DEFAULTS, deep_merge
 import os
@@ -213,6 +217,55 @@ class PendingCaptureTest(unittest.TestCase):
         cfg = self._draft_cfg(Path("/repo"))
         self.assertEqual(cfg.capture_auto_mode, "draft")
         self.assertEqual(cfg.capture_auto_max, 7)
+
+
+class MainSessionEndTest(unittest.TestCase):
+    """capture_sweep.main() under a SessionEnd-style payload (no stop_hook_active).
+
+    Guards the event move from Stop → SessionEnd: the sweep must still run once on
+    a genuine session end, and still skip a deliberate `/clear` (reason=="clear").
+    """
+
+    def _run_main(self, root, payload):
+        transcript = _transcript(root, [
+            {"role": "user", "content": "we decided to use Redis for sessions"},
+        ])
+        payload = {"transcript_path": transcript, "session_id": "deadbeef", **payload}
+        with mock.patch.object(sys, "stdin", io.StringIO(json.dumps(payload))), \
+             mock.patch.dict(os.environ, {"CLAUDE_PROJECT_DIR": str(root)}), \
+             contextlib.redirect_stderr(io.StringIO()):
+            return cs.main()
+
+    def _write_draft_config(self, root):
+        (root / "brain.config.toml").write_text(
+            '[capture.auto]\nmode = "draft"\n', encoding="utf-8")
+
+    def test_sessionend_payload_runs_sweep_once(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_draft_config(root)
+            rc = self._run_main(root, {})  # no stop_hook_active, no reason
+            self.assertEqual(rc, 0)
+            staging = root / ".brain-cache" / "pending-capture.md"
+            self.assertTrue(staging.exists())
+            self.assertIn("decided", staging.read_text(encoding="utf-8").lower())
+
+    def test_reason_clear_skips_sweep(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_draft_config(root)
+            rc = self._run_main(root, {"reason": "clear"})  # deliberate /clear
+            self.assertEqual(rc, 0)
+            self.assertFalse((root / ".brain-cache" / "pending-capture.md").exists())
+
+    def test_stop_hook_active_skips_sweep(self):
+        # Codex `Stop` re-entrancy guard still honored.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._write_draft_config(root)
+            rc = self._run_main(root, {"stop_hook_active": True})
+            self.assertEqual(rc, 0)
+            self.assertFalse((root / ".brain-cache" / "pending-capture.md").exists())
 
 
 class SessionStartTest(unittest.TestCase):

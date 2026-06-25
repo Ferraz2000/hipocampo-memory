@@ -6,7 +6,7 @@
 
 The logic is agent-agnostic; only the wiring differs per platform:
 
-- Claude Code  → plugin/hooks/hooks.json (SessionStart / Stop)
+- Claude Code  → plugin/hooks/hooks.json (SessionStart / SessionEnd)
 - Codex CLI    → .codex/hooks.json        (SessionStart / Stop)
 - Gemini CLI   → .gemini/settings.json    (SessionStart / SessionEnd)
 

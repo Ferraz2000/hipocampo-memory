@@ -43,7 +43,7 @@ frontmatter-as-truth, and a per-commit doc-sync gate.
      `vault_sync` (index consistency, status/area vocab, provenance/staleness),
      `router_lint` (opt-in). `preflight.py` runs the configured set.
    - `hooks/` — `session_start` (git-derived briefing) and `capture_sweep`
-     (Stop-hook sweep into the inbox). Config-driven, never block.
+     (session-end-hook sweep into the inbox). Config-driven, never block.
    - `inbox_decay.py`, `globs.py`.
 4. **The plugin** (`plugin/`): generator skills (`brain-init`,
    `brain-router-init`, `brain-scripts-init`, `brain-update`) and workflow skills
@@ -62,7 +62,7 @@ scaffold:  brain-init ──▶ <vault>/ + brain.config.toml
 
 use:       capture (write-gated) ──▶ knowledge/insights/raw + index + log
            search / challenge / discovery ──▶ search (BM25/FTS5)
-           Stop hook ──▶ capture-sweep ──▶ knowledge/_inbox  ──(triage via /capture)──▶ knowledge/
+           SessionEnd hook ──▶ capture-sweep ──▶ knowledge/_inbox  ──(triage via /capture)──▶ knowledge/
 
 govern:    pre-commit ──▶ gate(pre_commit) ──▶ feature_doc_sync (sensitive code w/o its doc)
            pre-push / CI ──▶ gate(pre_push|ci) ──▶ preflight (all validators)
@@ -182,7 +182,7 @@ One repo, one portable core, thin per-agent adapters. The skills (open Agent
 Skills format) are read **natively** by Claude Code, Codex, and Gemini; the
 `AGENTS.md` router, the zero-dep Python package, and the git-hook/CI templates run
 anywhere. The two session automations are wired to each agent's native hook system:
-Claude Code via the plugin's `hooks.json` (`SessionStart`/`Stop`), Codex via
+Claude Code via the plugin's `hooks.json` (`SessionStart`/`SessionEnd`), Codex via
 `.codex/hooks.json`, Gemini via `.gemini/settings.json` (`SessionStart`/
 `SessionEnd`) — installed from `templates/hooks/` by `brain-scripts-init`. The
 hook logic (`hipocampo/hooks/`) is identical across agents; only the wiring and
