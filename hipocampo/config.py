@@ -104,6 +104,27 @@ DEFAULTS = {
     # extensions, `index.search` fuses a vector ranking into the existing RRF.
     # Any of those absent ⇒ silent fallback to BM25. `dim` must match the model.
     "semantic": {"enabled": False, "model": "minishlab/potion-base-8M", "dim": 256},
+    # Phase 13 [reflection] — opt-in in-session generate->critique->revise loop
+    # with explicit stopping criteria, plus Reflexion-style memory (seed each loop
+    # from recall, distill the lesson back via capture). OFF by default. The LOOP
+    # and all judging live in the /reflect SKILL — Python makes NO LLM calls; it
+    # only reads/validates these stopping-criteria values deterministically
+    # (mirrors gate.py: the policy decision is here, the reasoning lives elsewhere).
+    #   max_iterations  — HARD CAP (returns diminish sharply after 2-3).
+    #   score_threshold — LLM-as-judge early-stop: stop when score >= this.
+    #   score_scale     — ceiling of the rubric scale (makes threshold checkable).
+    #   min_improvement — convergence tolerance: a gain below this is "no progress".
+    #   patience        — stop after this many consecutive no-progress rounds.
+    #   notes_root      — vault-relative dir the distilled lesson defaults to.
+    "reflection": {
+        "enabled": False,
+        "max_iterations": 3,
+        "score_threshold": 8,
+        "score_scale": 10,
+        "min_improvement": 1,
+        "patience": 1,
+        "notes_root": "insights",
+    },
     "doc_sync": [],
     # A changed file matching any of these globs (e.g. a Doc Impact Report)
     # satisfies every doc_sync rule for that commit.
@@ -294,6 +315,35 @@ class Config:
     def semantic_dim(self) -> int:
         return int(self._d["semantic"]["dim"])
 
+    # -- reflection loop (opt-in) ----------------------------------------
+    @property
+    def reflection_enabled(self) -> bool:
+        return bool(self._d["reflection"]["enabled"])
+
+    @property
+    def reflection_max_iterations(self) -> int:
+        return int(self._d["reflection"]["max_iterations"])
+
+    @property
+    def reflection_score_threshold(self) -> int:
+        return int(self._d["reflection"]["score_threshold"])
+
+    @property
+    def reflection_score_scale(self) -> int:
+        return int(self._d["reflection"]["score_scale"])
+
+    @property
+    def reflection_min_improvement(self) -> int:
+        return int(self._d["reflection"]["min_improvement"])
+
+    @property
+    def reflection_patience(self) -> int:
+        return int(self._d["reflection"]["patience"])
+
+    @property
+    def reflection_notes_root(self) -> str:
+        return self._d["reflection"]["notes_root"]
+
     @property
     def views_notes_root(self) -> str:
         return self._d["views"]["notes_root"]
@@ -404,6 +454,25 @@ def _validate(data):
         raise ConfigError("semantic must be a table.")
     if "enabled" in sem and not isinstance(sem["enabled"], bool):
         raise ConfigError(f'semantic.enabled must be true or false (got {sem["enabled"]!r}).')
+
+    refl = data.get("reflection", {})
+    if not isinstance(refl, dict):
+        raise ConfigError("reflection must be a table.")
+    if "enabled" in refl and not isinstance(refl["enabled"], bool):
+        raise ConfigError(
+            f'reflection.enabled must be true or false (got {refl["enabled"]!r}).')
+    # bool is an int subclass in Python — exclude it so `enabled = true` here fails.
+    for key in ("max_iterations", "score_threshold", "score_scale",
+                "min_improvement", "patience"):
+        if key in refl and (not isinstance(refl[key], int)
+                            or isinstance(refl[key], bool) or refl[key] < 0):
+            raise ConfigError(
+                f"reflection.{key} must be a non-negative integer (got {refl[key]!r}).")
+    if refl.get("max_iterations", 3) < 1:
+        raise ConfigError("reflection.max_iterations must be >= 1.")
+    if refl.get("score_threshold", 8) > refl.get("score_scale", 10):
+        raise ConfigError(
+            "reflection.score_threshold must be <= reflection.score_scale.")
 
     # Closed-vocabulary and path lists: a bare string here is a common TOML slip
     # that would be iterated character-by-character downstream (silently wrong).

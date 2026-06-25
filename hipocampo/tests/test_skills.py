@@ -13,7 +13,7 @@ EXPECTED_SKILLS = {
     "capture", "search", "recall", "audit", "discovery", "spec",
     "challenge", "discover-standards", "garden", "archive-closed",
     "execute-insight", "from-roadmap", "implement", "promote",
-    "weekly", "postmortem", "low-token",
+    "weekly", "postmortem", "low-token", "reflect",
 }
 
 

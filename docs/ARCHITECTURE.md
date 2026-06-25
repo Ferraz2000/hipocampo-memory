@@ -47,9 +47,9 @@ frontmatter-as-truth, and a per-commit doc-sync gate.
    - `inbox_decay.py`, `globs.py`.
 4. **The plugin** (`plugin/`): generator skills (`brain-init`,
    `brain-router-init`, `brain-scripts-init`, `brain-update`) and workflow skills
-   (`capture`, `search`, `discovery`, `spec`, `challenge`, `discover-standards`,
-   `garden`, `archive-closed`, `audit`, `weekly`, `promote`, `postmortem`,
-   `implement`, `low-token`, `from-roadmap`, `execute-insight`) in the open Agent
+   (`capture`, `search`, `recall`, `reflect`, `discovery`, `spec`, `challenge`,
+   `discover-standards`, `garden`, `archive-closed`, `audit`, `weekly`, `promote`,
+   `postmortem`, `implement`, `low-token`, `from-roadmap`, `execute-insight`) in the open Agent
    Skills format, plus `hooks/hooks.json` wiring the two hooks. The repo root is the plugin root
    (`.claude-plugin/plugin.json` with `skills`/`hooks` path keys) so skills can
    reach `templates/` and the package.

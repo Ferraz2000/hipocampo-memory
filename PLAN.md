@@ -240,6 +240,35 @@ max_candidates = 7  # AgeMem-style: cap noise, discard near-duplicates
 Onda 1 is functionally complete (mechanical signal + agent-reasoned, human-gated
 review). Tests green (131). Onda 2 (Phase 11) is next.
 
+## Phase 13 — reflection loop (opt-in) 🟡 in progress
+
+In-session iterative refinement that compounds across sessions. Combines a
+bounded **generate→critique→revise** loop (explicit STOPPING CRITERIA —
+max-iteration hard cap, LLM-as-judge score threshold, convergence/no-improvement
+window) with **Reflexion's episodic memory**: seed each loop with prior lessons
+via `recall`, and on stop distill the lesson back into durable markdown via
+`capture`. Grounded in Shinn et al. 2023 (verbal reinforcement) and the 2026
+"Evaluator-Optimizer" framing (a separate judge + objective rubric makes quality
+measurable, not vibes); the field's finding that returns diminish sharply after
+2-3 iterations sets the default cap.
+
+**Invariants held.** No LLM calls in Python — the loop and all judging live in
+the `/reflect` SKILL; `hipocampo/reflection.py` only evaluates stopping criteria
+deterministically (mirrors `gate.py`). `[reflection]` is opt-in (off by default);
+absent/disabled ⇒ single critique pass, never an unbounded loop. The distilled
+lesson goes through the human write-gate via `capture` — no autonomous durable
+writes. Reuses `recall` (read) and `capture` (write); hands conflicts to
+`/challenge`. Zero new deps.
+
+**Config** (`[reflection]`): `enabled`, `max_iterations` (cap, default 3),
+`score_threshold`/`score_scale` (judge early-stop), `min_improvement`+`patience`
+(convergence window), `notes_root` (where the lesson lands).
+
+**Landed:** `[reflection]` config + accessors + validation; deterministic
+`hipocampo/reflection.py` (`StopCriteria`/`StopDecision`/`evaluate` + CLI);
+`/reflect` skill (seed via recall → loop → stop-check shell-out → capture the
+lesson); tests for the stop predicate and config (suite green).
+
 ## Script port status (origin → `hipocampo/`)
 
 | Origin script | Generic % | Target | Status |

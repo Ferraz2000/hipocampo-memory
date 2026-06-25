@@ -102,12 +102,12 @@ delete the folders and it's gone.
 
 ## The full toolbox
 
-21 skills, grouped — **you don't memorize these; the agent picks them from what
+22 skills, grouped — **you don't memorize these; the agent picks them from what
 you say.** Adopt incrementally:
 
 - **Setup (once):** `brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`.
 - **Daily:** `capture`, `search`, `recall` (agent pulls memory mid-task), `low-token` (lean mode).
-- **Thinking:** `challenge` (confront a decision with past reversals), `discovery`, `spec`, `discover-standards`.
+- **Thinking:** `challenge` (confront a decision with past reversals), `reflect` (bounded critique→revise loop, memory-seeded), `discovery`, `spec`, `discover-standards`.
 - **Insight lifecycle:** `from-roadmap` → `promote` → `implement` / `execute-insight` → `weekly` / `postmortem` / `audit`.
 - **Maintenance:** `garden`, `archive-closed` (+ the `normalize` fixer and the `canary` self-test).
 

@@ -7,6 +7,16 @@ status, see [`PLAN.md`](PLAN.md).
 
 ## [Unreleased]
 
+### Added
+- **`/reflect` skill + `[reflection]` config (Phase 13, opt-in).** A bounded
+  in-session generate→critique→revise loop with explicit stopping criteria
+  (max-iteration cap, LLM-as-judge score threshold, convergence/no-improvement
+  window), seeded from past lessons via `recall` and closed by capturing the
+  distilled lesson via `capture` (Reflexion-with-memory). The loop and all judging
+  live in the skill — `hipocampo/reflection.py` is deterministic (no LLM calls),
+  evaluating the stop predicate from config (mirrors `gate.py`). OFF by default;
+  absent/disabled ⇒ a single critique pass, never an unbounded loop.
+
 ### Fixed
 - **Capture-sweep ran every turn instead of once at session end (Claude Code).**
   The plugin wired `capture_sweep` to the `Stop` event, which fires after *every*

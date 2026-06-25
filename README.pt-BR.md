@@ -104,12 +104,12 @@ as pastas, sumiu.
 
 ## A caixa de ferramentas completa
 
-21 skills, em grupos — **você não decora isso; o agente escolhe a partir do que
+22 skills, em grupos — **você não decora isso; o agente escolhe a partir do que
 você diz.** Adote incrementalmente:
 
 - **Setup (uma vez):** `brain-init`, `brain-router-init`, `brain-scripts-init`, `brain-update`.
 - **Diário:** `capture`, `search`, `recall` (o agente puxa memória no meio da tarefa), `low-token` (modo enxuto).
-- **Pensar:** `challenge` (confronta decisão com reversões passadas), `discovery`, `spec`, `discover-standards`.
+- **Pensar:** `challenge` (confronta decisão com reversões passadas), `reflect` (loop crítica→revisão com critério de parada, semeado pela memória), `discovery`, `spec`, `discover-standards`.
 - **Ciclo de vida de insights:** `from-roadmap` → `promote` → `implement` / `execute-insight` → `weekly` / `postmortem` / `audit`.
 - **Manutenção:** `garden`, `archive-closed` (+ o fixer `normalize` e o self-test `canary`).
 
@@ -119,7 +119,7 @@ rodados pelo `preflight`.
 
 ## Suporte cross-agent
 
-Um kit, adaptadores finos por agente. O núcleo portátil (as 21 skills SKILL.md, o
+Um kit, adaptadores finos por agente. O núcleo portátil (as 22 skills SKILL.md, o
 router `AGENTS.md`, o pacote Python zero-dep, git-hooks + CI) roda em qualquer
 lugar; os automatismos de sessão são conectados ao sistema de hooks nativo de cada
 agente.
