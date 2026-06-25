@@ -16,6 +16,14 @@ status, see [`PLAN.md`](PLAN.md).
   live in the skill — `hipocampo/reflection.py` is deterministic (no LLM calls),
   evaluating the stop predicate from config (mirrors `gate.py`). OFF by default;
   absent/disabled ⇒ a single critique pass, never an unbounded loop.
+- **Release automation (`hipocampo/release.py` + `release.yml`).** `prepare` bumps
+  the single-sourced version (`.claude-plugin/plugin.json`), promotes
+  `## [Unreleased]` → the new version, and refreshes both README status lines
+  (version + derived test count); pushing the resulting `v*` tag publishes a GitHub
+  Release whose notes are that CHANGELOG section (runner `gh`, no third-party
+  Action). A CI `release check` step fails on version drift across
+  plugin.json / CHANGELOG / READMEs — the drift that had left `README.pt-BR.md`
+  a full minor version behind (now realigned).
 
 ### Fixed
 - **Capture-sweep ran every turn instead of once at session end (Claude Code).**

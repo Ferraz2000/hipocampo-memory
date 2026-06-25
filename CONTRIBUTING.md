@@ -72,3 +72,25 @@ A validator is `hipocampo/validators/<name>.py` exposing `main(argv=None) -> int
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`).
 - CI (the unittest suite) must be green.
 - Don't bypass git hooks (`--no-verify`) without saying why.
+
+## Releasing
+
+The version is single-sourced in `.claude-plugin/plugin.json`; the CHANGELOG and
+the README status lines are kept in lockstep by `hipocampo/release.py`. Cutting a
+release is one command plus a push:
+
+```sh
+python -m hipocampo.release prepare 0.11.0 --tag   # or --minor / --patch
+git push --follow-tags
+```
+
+`prepare` bumps `plugin.json`, promotes `## [Unreleased]` → `## [0.11.0] — <today>`
+(re-opening an empty `[Unreleased]`), refreshes both README status lines (version
++ test count), and tags `v0.11.0`. Pushing the tag triggers
+`.github/workflows/release.yml`, which runs the suite and publishes a GitHub
+Release whose notes are that version's CHANGELOG section.
+
+`python -m hipocampo.release check` (run in CI) fails on version drift across
+plugin.json / CHANGELOG / READMEs — so a hand-edit can't silently desync them.
+Keep curating the `## [Unreleased]` section as you land PRs; that prose becomes
+the release notes verbatim.
