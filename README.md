@@ -11,7 +11,7 @@ docs rot — in any project, any language.
 > `_inbox/`, and a write-gated pipeline turns them into a curated, auditable
 > `knowledge/` base that lives in your repo and compounds over time.
 
-**Status: v0.10.0 — usable.** 182 tests, CI green, validated end-to-end including a
+**Status: v0.10.0 — usable.** 213 tests, CI green, validated end-to-end including a
 production project as first consumer, plus an opt-in semantic tier verified with
 the deps installed and the kit dogfooding its own memory ([details](PLAN.md)).
 
@@ -117,7 +117,7 @@ by `preflight`.
 
 ## Cross-agent support
 
-One kit, thin per-agent adapters. The portable core (the 21 SKILL.md skills, the
+One kit, thin per-agent adapters. The portable core (the 22 SKILL.md skills, the
 `AGENTS.md` router, the zero-dep Python package, git hooks + CI) runs anywhere;
 the session automations are wired to each agent's native hook system.
 

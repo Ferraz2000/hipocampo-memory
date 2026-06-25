@@ -57,3 +57,5 @@ jobs:
               "same-repo plugin must use the relative source '.'"
           print("manifests OK — version", pj["version"])
           PY
+      - name: Guard release sync (version ↔ CHANGELOG ↔ READMEs)
+        run: python -m hipocampo.release check

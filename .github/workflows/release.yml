@@ -1,0 +1,45 @@
+name: release
+
+# Cut a GitHub Release from a pushed version tag. The release notes are the
+# CHANGELOG section for that version (curated by hand, extracted by the stdlib
+# release tool). No third-party Action — the runner's `gh` + GITHUB_TOKEN suffice.
+#
+# Flow: `python -m hipocampo.release prepare X.Y.Z --tag` then
+#       `git push --follow-tags` → this workflow publishes the release.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # required for `gh release create`
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run tests (stdlib unittest, zero deps)
+        run: python -m unittest discover -s hipocampo/tests
+
+      - name: Guard version/CHANGELOG/README sync
+        run: python -m hipocampo.release check
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          python -m hipocampo.release notes "$VERSION" > release-notes.md
+          echo "Release notes for $VERSION:"; cat release-notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            --repo "$GITHUB_REPOSITORY"

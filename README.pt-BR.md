@@ -11,7 +11,7 @@ sessões e de deixar docs apodrecerem — em qualquer projeto, qualquer linguage
 > pipeline com write-gate as transforma numa base `knowledge/` curada e
 > auditável, que vive no seu repo e se compõe ao longo do tempo.
 
-**Status: v0.9.1 — usável.** 145 testes, CI verde, validado ponta-a-ponta
+**Status: v0.10.0 — usável.** 213 testes, CI verde, validado ponta-a-ponta
 incluindo um projeto de produção como primeiro consumidor, mais um tier semântico
 opt-in verificado com as deps instaladas e o kit fazendo dogfood da própria
 memória ([detalhes](PLAN.md)).
