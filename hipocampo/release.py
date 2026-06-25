@@ -165,7 +165,9 @@ def cmd_prepare(args) -> int:
         subprocess.run(["git", "commit", "-m", f"chore(release): v{ver}"], cwd=repo, check=True)
         print(f"committed chore(release): v{ver}")
     if args.tag:
-        subprocess.run(["git", "tag", f"v{ver}"], cwd=repo, check=True)
+        # Annotated (-a), not lightweight: `git push --follow-tags` (the documented
+        # flow) only pushes annotated tags, so a lightweight one would never ship.
+        subprocess.run(["git", "tag", "-a", f"v{ver}", "-m", f"v{ver}"], cwd=repo, check=True)
         print(f"tagged v{ver} — push with: git push --follow-tags")
     return 0
 

@@ -7,6 +7,12 @@ status, see [`PLAN.md`](PLAN.md).
 
 ## [Unreleased]
 
+### Fixed
+- **`release prepare --tag` now creates an *annotated* tag.** It made a lightweight
+  tag, which `git push --follow-tags` (the documented release flow) silently skips —
+  so the tag never reached the remote and `release.yml` never fired. Annotated tags
+  push as documented.
+
 ## [0.11.0] — 2026-06-25
 
 ### Added
