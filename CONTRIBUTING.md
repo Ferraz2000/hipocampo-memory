@@ -90,6 +90,10 @@ git push --follow-tags
 `.github/workflows/release.yml`, which runs the suite and publishes a GitHub
 Release whose notes are that version's CHANGELOG section.
 
+No machine to push a tag from? Land the bump via PR, then **Actions ▸ release ▸
+Run workflow ▸ version = X.Y.Z** — the runner creates the tag on `main` and
+publishes the Release itself (works where local tag pushes are restricted).
+
 `python -m hipocampo.release check` (run in CI) fails on version drift across
 plugin.json / CHANGELOG / READMEs — so a hand-edit can't silently desync them.
 Keep curating the `## [Unreleased]` section as you land PRs; that prose becomes
