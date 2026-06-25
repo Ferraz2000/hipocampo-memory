@@ -7,6 +7,18 @@ status, see [`PLAN.md`](PLAN.md).
 
 ## [Unreleased]
 
+### Added
+- **`release.yml` gains a `workflow_dispatch` trigger.** Releases can now be cut
+  from the Actions tab (or the API) — pick the version and the runner creates the
+  tag on `main` and publishes the Release itself (server-side `GITHUB_TOKEN`), so
+  it works even where local tag pushes are restricted. The tag-push path still works.
+
+### Fixed
+- **`release prepare --tag` now creates an *annotated* tag.** It made a lightweight
+  tag, which `git push --follow-tags` (the documented release flow) silently skips —
+  so the tag never reached the remote and `release.yml` never fired. Annotated tags
+  push as documented.
+
 ## [0.11.0] — 2026-06-25
 
 ### Added

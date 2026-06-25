@@ -1,24 +1,37 @@
 name: release
 
-# Cut a GitHub Release from a pushed version tag. The release notes are the
-# CHANGELOG section for that version (curated by hand, extracted by the stdlib
-# release tool). No third-party Action — the runner's `gh` + GITHUB_TOKEN suffice.
+# Publish a GitHub Release whose notes are the CHANGELOG section for the version.
+# No third-party Action — the runner's `gh` + GITHUB_TOKEN suffice, and the runner
+# (not your machine) creates the tag, so it works even where local tag pushes are
+# restricted.
 #
-# Flow: `python -m hipocampo.release prepare X.Y.Z --tag` then
-#       `git push --follow-tags` → this workflow publishes the release.
+# Two ways in:
+#   1. push a version tag:  `release prepare X.Y.Z --tag` then `git push --follow-tags`
+#   2. manual dispatch:     Actions ▸ release ▸ Run workflow ▸ version = X.Y.Z
+#      (or via API) — the job creates the tag on `main` itself.
+# Either way the version must already be live on the branch (plugin.json + CHANGELOG
+# + READMEs), which `release check` enforces below.
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 0.11.0 (must match plugin.json / CHANGELOG on main)"
+        required: true
 
 permissions:
-  contents: write   # required for `gh release create`
+  contents: write   # required for `gh release create` (and creating the tag)
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so a dispatch can tag the checked-out commit
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -29,17 +42,28 @@ jobs:
       - name: Guard version/CHANGELOG/README sync
         run: python -m hipocampo.release check
 
+      - name: Resolve version + tag
+        id: v
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION"   >> "$GITHUB_OUTPUT"
+
       - name: Extract release notes from CHANGELOG
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          python -m hipocampo.release notes "$VERSION" > release-notes.md
-          echo "Release notes for $VERSION:"; cat release-notes.md
+          python -m hipocampo.release notes "${{ steps.v.outputs.version }}" > release-notes.md
+          echo "Release notes for ${{ steps.v.outputs.version }}:"; cat release-notes.md
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release (creates the tag on dispatch; reuses it on tag push)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            --title "$GITHUB_REF_NAME" \
+          gh release create "${{ steps.v.outputs.tag }}" \
+            --target "$GITHUB_SHA" \
+            --title "${{ steps.v.outputs.tag }}" \
             --notes-file release-notes.md \
             --repo "$GITHUB_REPOSITORY"
