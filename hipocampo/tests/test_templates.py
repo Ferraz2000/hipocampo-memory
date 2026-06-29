@@ -74,6 +74,16 @@ class HookTemplatesTest(unittest.TestCase):
             data = json.loads((HOOK_TEMPLATES / rel).read_text(encoding="utf-8"))
             self.assertEqual(set(data["hooks"]), events, f"{rel}: unexpected events")
 
+    def test_templates_provide_windows_commands(self):
+        for rel in self.CASES:
+            data = json.loads((HOOK_TEMPLATES / rel).read_text(encoding="utf-8"))
+            for entries in data["hooks"].values():
+                for entry in entries:
+                    for hook in entry.get("hooks", []):
+                        self.assertIn("commandWindows", hook, f"{rel}: missing Windows command")
+                        self.assertIn("powershell -NoProfile", hook["commandWindows"])
+                        self.assertIn("python -m hipocampo.hooks.", hook["commandWindows"])
+
     def test_templates_wire_the_hipocampo_modules(self):
         for rel in self.CASES:
             data = json.loads((HOOK_TEMPLATES / rel).read_text(encoding="utf-8"))

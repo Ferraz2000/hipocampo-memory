@@ -6,11 +6,13 @@
           {
             "type": "command",
             "command": "sh -c \"PYTHONPATH=. $(command -v python3 || command -v python) -m hipocampo.hooks.ensure_githooks 2>/dev/null; exit 0\"",
+            "commandWindows": "powershell -NoProfile -Command '$env:PYTHONPATH=\".\"; python -m hipocampo.hooks.ensure_githooks 2>$null; exit 0'",
             "timeout": 10
           },
           {
             "type": "command",
             "command": "sh -c \"PYTHONPATH=. $(command -v python3 || command -v python) -m hipocampo.hooks.session_start --format json 2>/dev/null; exit 0\"",
+            "commandWindows": "powershell -NoProfile -Command '$env:PYTHONPATH=\".\"; python -m hipocampo.hooks.session_start --format json 2>$null; exit 0'",
             "timeout": 10
           }
         ]
@@ -22,6 +24,7 @@
           {
             "type": "command",
             "command": "sh -c \"PYTHONPATH=. $(command -v python3 || command -v python) -m hipocampo.hooks.capture_sweep 2>/dev/null; exit 0\"",
+            "commandWindows": "powershell -NoProfile -Command '$env:PYTHONPATH=\".\"; python -m hipocampo.hooks.capture_sweep 2>$null; exit 0'",
             "timeout": 15
           }
         ]
