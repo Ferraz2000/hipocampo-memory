@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from hipocampo import agents
 from hipocampo.config import Config, DEFAULTS
 from hipocampo.validators import vault_sync
 
@@ -95,6 +96,43 @@ class HookTemplatesTest(unittest.TestCase):
                         for entry in entries for h in entry.get("hooks", [])
                         if "capture_sweep" in h.get("command", "")]
         self.assertEqual(sweep_events, ["SessionEnd"])
+
+
+class AgentScaffoldTest(unittest.TestCase):
+    """Codex and Gemini assets should be installable without Claude-specific glue."""
+
+    def test_codex_scaffold_copies_all_skills_and_hooks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            agents.scaffold_agent_assets(root, REPO_ROOT, "codex")
+
+            installed = {p.parent.name for p in (root / ".agents" / "skills").glob("*/SKILL.md")}
+            source = {p.parent.name for p in (REPO_ROOT / "plugin" / "skills").glob("*/SKILL.md")}
+            self.assertEqual(installed, source)
+
+            hooks = json.loads((root / ".codex" / "hooks.json").read_text(encoding="utf-8"))
+            self.assertEqual(set(hooks["hooks"]), {"SessionStart", "Stop"})
+
+    def test_gemini_scaffold_copies_all_skills_and_merges_settings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            settings = root / ".gemini" / "settings.json"
+            settings.parent.mkdir()
+            settings.write_text(json.dumps({"theme": "dark", "hooks": {"PreToolUse": []}}),
+                                encoding="utf-8")
+
+            agents.scaffold_agent_assets(root, REPO_ROOT, "gemini")
+
+            installed = {p.parent.name for p in (root / ".gemini" / "skills").glob("*/SKILL.md")}
+            source = {p.parent.name for p in (REPO_ROOT / "plugin" / "skills").glob("*/SKILL.md")}
+            self.assertEqual(installed, source)
+
+            merged = json.loads(settings.read_text(encoding="utf-8"))
+            self.assertEqual(merged["theme"], "dark")
+            self.assertIn("PreToolUse", merged["hooks"])
+            self.assertIn("SessionStart", merged["hooks"])
+            self.assertIn("SessionEnd", merged["hooks"])
+            self.assertEqual(merged["context"]["fileName"], ["AGENTS.md", "GEMINI.md"])
 
 
 if __name__ == "__main__":

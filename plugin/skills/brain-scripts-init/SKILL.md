@@ -16,8 +16,8 @@ installed (hooks/CI need the package importable at the repo root).
    - **Which agents are in use?** (multi-select: Claude Code / Codex / Gemini) —
      drives which session-hook wiring (step 5) and router settings (handled by
      `brain-router-init`) get installed. Skills themselves are read natively by
-     all three (`npx skills add`, or copy `plugin/skills/**` into `.agents/skills/`
-     for Codex / `.gemini/skills/` for Gemini) — no wrappers.
+     all three: Codex uses `.agents/skills/`, Gemini uses `.gemini/skills/`, and
+     Claude Code carries them through the plugin — no wrappers.
    - **Enforcement level** — how hard the doc-sync gate pushes back, written as
      `[enforcement]` in `brain.config.toml`. Offer three presets and **recommend
      "advisory-local"** (you're never stuck mid-task, but drift still can't merge):
@@ -60,18 +60,22 @@ installed (hooks/CI need the package importable at the repo root).
    otherwise push-mode CI never triggers.
 4. **Sanity check.** Run `python3 -m hipocampo.preflight` and report the result. A
    repo with no `[[doc_sync]]` rules yet passes cleanly.
-5. **Wire the session hooks per agent** (briefing at session start + capture-sweep
-   at session end — the same agent-agnostic `hipocampo.hooks.*` modules, only the
-   wiring differs). Install from `${CLAUDE_PLUGIN_ROOT}/templates/hooks/` for each
-   selected agent:
+5. **Install skills and wire the session hooks per agent** (briefing at session
+   start + capture-sweep at session end — the same agent-agnostic
+   `hipocampo.hooks.*` modules, only the wiring differs). Use the tested installer
+   for Codex/Gemini so skills + hooks are installed together:
    - **Claude Code** → already carried by the plugin (`plugin/hooks/hooks.json`);
      nothing to vendor.
-   - **Codex** → copy `templates/hooks/codex/hooks.json` to `.codex/hooks.json`
-     (or `~/.codex/hooks.json` for reliability), and tell the user to run `/hooks`
-     once to trust it. Note: Codex hooks are experimental.
-   - **Gemini** → merge the `hooks` object from
-     `templates/hooks/gemini/settings.hooks.json` into `.gemini/settings.json`
-     (don't clobber existing keys).
+   - **Codex** → run
+     `python -m hipocampo.agents codex --kit-root ${CLAUDE_PLUGIN_ROOT:-.}`.
+     This copies `plugin/skills/**` to `.agents/skills/` and installs
+     `.codex/hooks.json`. Tell the user to run `/hooks` once to trust it. Note:
+     Codex hooks are experimental.
+   - **Gemini** → run
+     `python -m hipocampo.agents gemini --kit-root ${CLAUDE_PLUGIN_ROOT:-.}`.
+     This copies `plugin/skills/**` to `.gemini/skills/`, merges the hook fragment
+     into `.gemini/settings.json` without clobbering existing keys, and sets
+     `context.fileName = ["AGENTS.md", "GEMINI.md"]`.
    - Write the chosen **`[enforcement]`** preset (from step 0) into
      `brain.config.toml` (omit the block to keep the all-`block` default).
    - Apply the **auto-memory** answer from step 0 in the agent's own settings
