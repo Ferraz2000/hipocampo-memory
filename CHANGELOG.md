@@ -7,6 +7,11 @@ status, see [`PLAN.md`](PLAN.md).
 
 ## [Unreleased]
 
+## [0.12.1] — 2026-06-29
+
+### Fixed
+- **Codex/Gemini hook templates now work on Windows without sh.** Added commandWindows PowerShell fallbacks for the repo-local agent hook scaffolds while keeping the existing Unix commands intact.
+
 ## [0.12.0] — 2026-06-29
 
 ### Added
