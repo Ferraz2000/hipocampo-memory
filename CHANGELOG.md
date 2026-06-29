@@ -7,7 +7,14 @@ status, see [`PLAN.md`](PLAN.md).
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-06-29
+
 ### Added
+- **Codex/Gemini scaffold is now executable and tested.** New
+  `python -m hipocampo.agents codex|gemini` copies the portable skills into
+  `.agents/skills/` or `.gemini/skills/`, installs the per-agent hook wiring, and
+  merges Gemini settings without clobbering existing keys. `brain-scripts-init`
+  now uses this tested path instead of prose-only copy/merge steps.
 - **`release.yml` gains a `workflow_dispatch` trigger.** Releases can now be cut
   from the Actions tab (or the API) — pick the version and the runner creates the
   tag on `main` and publishes the Release itself (server-side `GITHUB_TOKEN`), so

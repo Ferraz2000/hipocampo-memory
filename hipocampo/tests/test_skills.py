@@ -51,6 +51,13 @@ class SkillsTest(unittest.TestCase):
             self.assertTrue(fields.get("description"), f"{skill}: description required")
             self.assertTrue(body.strip(), f"{skill}: body required")
 
+    def test_brain_scripts_init_points_codex_gemini_at_tested_installer(self):
+        body = (SKILLS_DIR / "brain-scripts-init" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("python -m hipocampo.agents codex", body)
+        self.assertIn("python -m hipocampo.agents gemini", body)
+        self.assertIn(".agents/skills/", body)
+        self.assertIn(".gemini/skills/", body)
+
 
 if __name__ == "__main__":
     unittest.main()
